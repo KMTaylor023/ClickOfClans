@@ -1,0 +1,43 @@
+{
+  "name": "Click of Clans",
+  "version": "1.0.0",
+  "description": "A multiplayer arena clicker game",
+  "main": "./server/server.js",
+  "scripts": {
+    "build": "babel ./client --out-file ./hosted/bundle.js",
+	"watch": "babel --watch ./client --out-file ./hosted/bundle.js",
+	"nodemon": "nodemon --watch ./server --watch ./hosted ./server/server.js ",
+    "start": "node ./server/server.js",
+    "pretest": "eslint ./server --fix",
+    "test": "echo \"Tests complete\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KMTaylor023/ClickOfClans"
+  },
+  "keywords": [
+    "Clicker",
+    "590",
+    "IGME",
+    "wow",
+    "cool",
+    "awesome"
+  ],
+  "author": "Team Awesome Sauce",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KMTaylor023/ClickOfClans/issues"
+  },
+  "homepage": "https://github.com/KMTaylor023/ClickOfClans#readme",
+  "dependencies": {
+    "socket.io": "^2.0.4"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.17.0",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.8.0",
+    "nodemon": "^1.14.12"
+  }
+}
