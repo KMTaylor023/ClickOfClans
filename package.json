@@ -1,12 +1,12 @@
 {
-  "name": "Click of Clans",
+  "name": "ClickofClans",
   "version": "1.0.0",
   "description": "A multiplayer arena clicker game",
   "main": "./server/server.js",
   "scripts": {
     "build": "babel ./client --out-file ./hosted/bundle.js",
-	"watch": "babel --watch ./client --out-file ./hosted/bundle.js",
-	"nodemon": "nodemon --watch ./server --watch ./hosted ./server/server.js ",
+    "watch": "babel --watch ./client --out-file ./hosted/bundle.js",
+    "nodemon": "nodemon --watch ./server --watch ./hosted ./server/server.js ",
     "start": "node ./server/server.js",
     "pretest": "eslint ./server --fix",
     "test": "echo \"Tests complete\""
@@ -30,7 +30,9 @@
   },
   "homepage": "https://github.com/KMTaylor023/ClickOfClans#readme",
   "dependencies": {
-    "socket.io": "^2.0.4"
+    "socket.io": "^2.0.4",
+    "express": "^4.15.2",
+    "xxhashjs": "^0.2.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
