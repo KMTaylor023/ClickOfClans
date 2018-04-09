@@ -16,7 +16,7 @@ var lobbyList = {};
 const joinRoom = (room) => {
   if(!room) return;
   //TODO change game state
-  socket.emit('join', {room});
+  socket.emit(Messages.S_Join, {room});
 };
 
 //initializes everything required for the lobby
