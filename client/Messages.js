@@ -11,10 +11,12 @@ const Messages = Object.freeze({
   H_Player_Left: 'h_removePlayer',
   H_Currency_Click: 'h_currencyClick',
   H_Attack_Click: 'h_attackClick',
+  H_Become_Host: 'h_isHost',
   //Server messages
   S_Create_Room: 's_createRoom',
   S_Disconnect: 'disconnect',
   S_Join: 'join',
 });
 
-modules.exports.Messages = Messages;
+if(typeof module !== 'undefined')
+  module.exports = Messages;

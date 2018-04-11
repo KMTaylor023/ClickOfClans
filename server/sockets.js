@@ -79,12 +79,17 @@ const joinRoom = (sock, roomName) => {
 
   const player = new Player(socket.hash, socket.playerName);
 
+  //what to do if there is or isn't a host
   if (room.players.length === 0) {
-    // TODO----------------------------setup host
+    room.hostSocket = socket;
+    socket.emit(Messages.H_Become_Host);
+    socket.host = true;
+    console.dir(room.hostSocket);
   } else {
-    socket.hostSocket = room.hostSocket;
+    console.dir(room.hostSocket);
     socket.hostSocket.emit(Messages.H_Player_Joined, player);
   }
+    socket.hostSocket = room.hostSocket;
 
 
   room.players.push(socket.hash);
@@ -124,7 +129,7 @@ const leaveRoom = (sock) => {
   delete socket.roomString;
 };
 
-// //Socket functions
+/* ++++++ Socket functions ++++++ */
 
 // creates a room for a socket
 const onCreateRoom = (sock) => {
@@ -132,6 +137,7 @@ const onCreateRoom = (sock) => {
 
   socket.on(Messages.S_Create_Room, (data) => {
     const { room } = data;
+    console.log(room);
     if (!room || socket.roomString) {
       // Socket is already in a room, or no room name was given
       return;
@@ -183,7 +189,6 @@ const setupSockets = (ioServer) => {
   // on socket connections
   io.on('connection', (sock) => {
     const socket = sock;
-
     const hash = doHash(socket.id);
     socket.hash = hash;
 
@@ -208,4 +213,4 @@ const setupSockets = (ioServer) => {
   });
 };
 
-module.exports.setupSockets = setupSockets;
+module.exports = setupSockets;

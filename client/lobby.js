@@ -17,6 +17,13 @@ const joinRoom = (room) => {
   if(!room) return;
   //TODO change game state
   socket.emit(Messages.S_Join, {room});
+  client_showGame();
+};
+
+
+const sendCreateRoom = (room) => {
+  socket.emit(Messages.S_Create_Room,{room});
+  client_showGame();
 };
 
 //initializes everything required for the lobby
@@ -29,7 +36,7 @@ const initializeLobby = () => {
     if (nameText.value === '') {
       return false;
     }
-    createRoom(nameText.value);
+    sendCreateRoom(nameText.value);
     nameText.value = "";
     return false;
   });
