@@ -5,6 +5,6 @@ class Room {
     this.players = [];
     Object.seal(this);
   }
-};
+}
 
 module.exports = Room;

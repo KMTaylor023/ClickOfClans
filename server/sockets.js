@@ -3,7 +3,7 @@ const xxh = require('xxhashjs');
 const Player = require('./classes/Player.js');
 const Room = require('./Room.js');
 
-//Pulls in the messages object, where all message names are stored for consistency
+// Pulls in the messages object, where all message names are stored for consistency
 const Messages = require('../client/Messages.js');
 
 const LOBBY_NAME = 'lobby';
@@ -12,15 +12,13 @@ const MAX_ROOM_SIZE = 4;
 // our socketio instance
 let io;
 
-//object to store room hosts
-let rooms = {};
+// object to store room hosts
+const rooms = {};
 
 
-////Helper Functions
+// //Helper Functions
 
-const doHash = (string) => {
-  return xxh.h32(`${string}${new Date().getTime()}`, 0xFEFACADE).toString(16);
-}
+const doHash = string => xxh.h32(`${string}${new Date().getTime()}`, 0xFEFACADE).toString(16);
 
 // sends a socket error
 const socketErr = (socket, msg) => {
@@ -36,7 +34,7 @@ const defaultSocket = (sock) => {
   socket.roomString = undefined;
 };
 
-//Called when the socket FIRST joins the lobby, only first time
+// Called when the socket FIRST joins the lobby, only first time
 const enterLobby = (sock) => {
   const socket = sock;
 
@@ -82,9 +80,9 @@ const joinRoom = (sock, roomName) => {
   const player = new Player(socket.hash, socket.playerName);
 
   if (room.players.length === 0) {
-    //TODO----------------------------setup host
+    // TODO----------------------------setup host
   } else {
-    socket.hostSocket = players[room.hostSocket];
+    socket.hostSocket = room.hostSocket;
     socket.hostSocket.emit(Messages.H_Player_Joined, player);
   }
 
@@ -102,22 +100,21 @@ const joinRoom = (sock, roomName) => {
 const leaveRoom = (sock) => {
   const socket = sock;
   if (!socket.roomString) {
-    return;//what room?
+    return;// what room?
   }
 
   const s = socket.roomString;
   if (rooms[s]) {
     const room = rooms[s];
-    //remove the player
+    // remove the player
     room.players.splice(room.players.indexOf(socket.hash));
     room.full = false;
 
-    
+
     if (socket.host) {
-      //TODO-------------------host left the game
-    }
-    else{
-      room.hostSocket.emit(Messages.H_Player_Left, {hash:socket.hash});
+      // TODO-------------------host left the game
+    } else {
+      room.hostSocket.emit(Messages.H_Player_Left, { hash: socket.hash });
     }
 
     updateLobby(room);
@@ -127,7 +124,7 @@ const leaveRoom = (sock) => {
   delete socket.roomString;
 };
 
-////Socket functions
+// //Socket functions
 
 // creates a room for a socket
 const onCreateRoom = (sock) => {
@@ -136,19 +133,19 @@ const onCreateRoom = (sock) => {
   socket.on(Messages.S_Create_Room, (data) => {
     const { room } = data;
     if (!room || socket.roomString) {
-      //Socket is already in a room, or no room name was given
+      // Socket is already in a room, or no room name was given
       return;
     }
-    
-    //TODO validate is string and set max string length
-    //TODO maybe allow mutilpe rooms of the same name, use hashes instead of name
+
+    // TODO validate is string and set max string length
+    // TODO maybe allow mutilpe rooms of the same name, use hashes instead of name
 
     if (rooms[room] || room === LOBBY_NAME) {
       socketErr(socket, 'Room name already exists');
       return;
     }
 
-    rooms[room] = new Room(name);
+    rooms[room] = new Room(room);
 
     joinRoom(socket, room);
   });
@@ -181,34 +178,34 @@ const onJoinRoom = (sock) => {
 
 // function to setup our socket server
 const setupSockets = (ioServer) => {
-    io = ioServer;
-    
-    //on socket connections
-    io.on('connection', (sock) => {
-      const socket = sock;
-      
-      const hash = doHash(socket.id);
-      socket.hash = hash;
-      
-      defaultSocket(socket);
-        
-      onJoinRoom(socket);
-      onDisconnect(socket);
-      onCreateRoom(socket);
-      
-      
-      socket.on(Messages.C_Currency_Click, () => {
-          //send the hash of the clicking user to the room host
-          socket.roomHost.emit(Messages.H_Currency_Click, socket.hash);
-      });
-      
-      socket.on(Messages.C_Attack_Click, (data) => {
-          //send the target data to the host
-          socket.roomHost.emit(Messages.H_Attack_Click, data);
-      });
-      
-      enterLobby(socket);
+  io = ioServer;
+
+  // on socket connections
+  io.on('connection', (sock) => {
+    const socket = sock;
+
+    const hash = doHash(socket.id);
+    socket.hash = hash;
+
+    defaultSocket(socket);
+
+    onJoinRoom(socket);
+    onDisconnect(socket);
+    onCreateRoom(socket);
+
+
+    socket.on(Messages.C_Currency_Click, () => {
+      // send the hash of the clicking user to the room host
+      socket.roomHost.emit(Messages.H_Currency_Click, socket.hash);
     });
+
+    socket.on(Messages.C_Attack_Click, (data) => {
+      // send the target data to the host
+      socket.roomHost.emit(Messages.H_Attack_Click, data);
+    });
+
+    enterLobby(socket);
+  });
 };
 
 module.exports.setupSockets = setupSockets;

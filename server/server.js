@@ -4,8 +4,6 @@ const url = require('url');
 const socketio = require('socket.io');
 const setupSockets = require('./sockets.js');
 
-const MAX_ROOM_SIZE = 4;
-
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const index = fs.readFileSync(`${__dirname}/../hosted/index.html`);
@@ -34,4 +32,4 @@ const app = http.createServer(onRequest).listen(port);
 console.log(`Listening on 127.0.0.1:${port}`);
 
 
-setupSockets(app);
+setupSockets(socketio(app));
