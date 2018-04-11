@@ -15,6 +15,9 @@ let io;
 // object to store room hosts
 const rooms = {};
 
+//lobby system sends rooms object, so directly attatching hosts is bad
+const hosts = {};
+
 
 // //Helper Functions
 
@@ -81,15 +84,16 @@ const joinRoom = (sock, roomName) => {
 
   //what to do if there is or isn't a host
   if (room.players.length === 0) {
-    room.hostSocket = socket;
-    socket.emit(Messages.H_Become_Host);
+    room.hostSocketHash = socket.hash;
+    socket.emit(Messages.H_Become_Host,{});
     socket.host = true;
-    console.dir(room.hostSocket);
+    socket.hostSocket = socket;
+    hosts[socket.hash] = socket;
   } else {
-    console.dir(room.hostSocket);
+    socket.hostSocket = hosts[room.hostSocketHash];
     socket.hostSocket.emit(Messages.H_Player_Joined, player);
   }
-    socket.hostSocket = room.hostSocket;
+    
 
 
   room.players.push(socket.hash);
@@ -97,7 +101,6 @@ const joinRoom = (sock, roomName) => {
   if (room.players.length === MAX_ROOM_SIZE) {
     room.full = true;
   }
-
   return updateLobby(room);
 };
 
@@ -117,9 +120,9 @@ const leaveRoom = (sock) => {
 
 
     if (socket.host) {
-      // TODO-------------------host left the game
+      delete hosts[socket.hash];
     } else {
-      room.hostSocket.emit(Messages.H_Player_Left, { hash: socket.hash });
+      hosts[room.hostSocketHash].emit(Messages.H_Player_Left, { hash: socket.hash });
     }
 
     updateLobby(room);
@@ -137,7 +140,6 @@ const onCreateRoom = (sock) => {
 
   socket.on(Messages.S_Create_Room, (data) => {
     const { room } = data;
-    console.log(room);
     if (!room || socket.roomString) {
       // Socket is already in a room, or no room name was given
       return;
