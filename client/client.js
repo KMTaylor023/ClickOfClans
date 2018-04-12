@@ -30,7 +30,6 @@ const doMouseDown = (e) => {
     
     //make sure the player isnt clicking already
     if (!mouseClicked){
-        /*
         //get the keys
         const keys = Object.keys(users);
 
@@ -38,17 +37,24 @@ const doMouseDown = (e) => {
         for (let i = 0; i < keys.length; i++){
             let player = users[keys[i]];
 
-            if (mouse position is in player position){
-                //check if player is you
-                if (socket.hash === player.hash){
-                    //send a currency click event
-                }
-                else{
-                    //send an attack click event
+            //if the click was in the square, send it to the server for points;
+            if (mouse.x >= square.x && mouse.x <= square.x + square.width){
+                if (mouse.y >= square.y && mouse.y <= square.y + square.height){
+                    //check if player is you
+                    if (socket.hash === player.hash){
+                        //send a currency click event
+                        socket.emit(Messages.C_Currency_Click, {hash: socket.hash});
+                    }
+                    else{
+                        //send an attack click event
+                        socket.emit(Messages.C_Currency_Click, 
+                        {originHash: socket.hash, targetHash: player.hash, x: users[socket.hash].x, 
+                         y: users[socket.hash].y, color: users[socket.hash].color});
+                    }
                 }
             }
         }
-        */
+        
     }
     
     //disable additional clicks
@@ -59,8 +65,6 @@ const doMouseDown = (e) => {
 const doMouseUp = () => {
     mouseClicked = false;
 };
-
-//TODO draw method, lerp method, player clickability
 
 const init = () => {
   initializeLobby();//initialize lobby elements

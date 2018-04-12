@@ -252,8 +252,14 @@ const setupSockets = (ioServer) => {
     });
 
     socket.on(Messages.C_Attack_Click, (data) => {
+        //get a hash for attack
+        const hash = doHash(socket.id);
+            
+        //make a new attack
+        let attack = new Attack(hash, data.originHash, data.targetHash, data.x, data.y, data.color);
+        
       // send the target data to the host
-      socket.roomHost.emit(Messages.H_Attack_Click, data);
+      socket.roomHost.emit(Messages.H_Attack_Click, attack);
     });
 
     enterLobby(socket);
