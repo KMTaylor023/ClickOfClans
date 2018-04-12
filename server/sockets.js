@@ -1,7 +1,7 @@
 const xxh = require('xxhashjs');
 // custom class for the player
 const Player = require('./classes/Player.js');
-const Room = require('./Room.js');
+const Room = require('./classes/Room.js');
 
 // Pulls in the messages object, where all message names are stored for consistency
 const Messages = require('../client/Messages.js');
@@ -57,6 +57,34 @@ const updateLobby = (room) => {
   }
 };
 
+//host relay functions
+//send the host processed data from a click event to the whole room
+const hostClick = (sock) => {
+    let socket = sock;
+    
+    socket.on(Messages.H_Currency_Result, (data) => {
+        io.sockets.in(socket.roomString).emit(Messages.C_Currency_Result, data);
+    });
+};
+
+//send the host processed data from a fired attack event to the whole room
+const hostAttackFired = (sock) => {
+    let socket = sock;
+    
+    socket.on(Messages.H_Attack_Result, (data) => {
+        io.sockets.in(socket.roomString).emit(Messages.C_Attack_Result, data);
+    });
+};
+
+//send the host processed data from an attack hit event to the whole room
+const hostAttackHit = (sock) => {
+    let socket = sock;
+    
+    socket.on(Messages.H_Attack_Hit, (data) => {
+        io.sockets.in(socket.roomString).emit(Messages.C_Attack_Hit, data);
+    });
+};
+
 // adds player to given room
 const joinRoom = (sock, roomName) => {
   const socket = sock;
@@ -87,6 +115,12 @@ const joinRoom = (sock, roomName) => {
     room.hostSocketHash = socket.hash;
     socket.emit(Messages.H_Become_Host,{});
     socket.host = true;
+    
+    //set up host listeners
+    hostClick(socket);
+    hostAttackFired(socket);
+    hostAttackHit(socket);
+    
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;
   } else {
