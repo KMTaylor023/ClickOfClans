@@ -85,6 +85,15 @@ const hostAttackHit = (sock) => {
     });
 };
 
+//send the player data for the room to the whole room
+const hostRoomUpdate = (sock) => {
+    let socket = sock;
+    
+    socket.on(Messages.H_Room_Update, (data) => {
+        io.sockets.in(socket.roomString).emit(Messages.C_Room_Update, data);
+    });
+};
+
 // adds player to given room
 const joinRoom = (sock, roomName) => {
   const socket = sock;
@@ -120,6 +129,7 @@ const joinRoom = (sock, roomName) => {
     hostClick(socket);
     hostAttackFired(socket);
     hostAttackHit(socket);
+    hostRoomUpdate(socket);
     
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;
@@ -157,6 +167,7 @@ const leaveRoom = (sock) => {
       delete hosts[socket.hash];
     } else {
       hosts[room.hostSocketHash].emit(Messages.H_Player_Left, { hash: socket.hash });
+      io.sockets.in(socket.roomString).emit(Messages.C_Player_Left, { hash: socket.hash });
     }
 
     updateLobby(room);
