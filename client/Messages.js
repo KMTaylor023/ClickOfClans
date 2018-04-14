@@ -24,7 +24,7 @@ const Messages = Object.freeze({
   //Server messages
   S_Create_Room: 's_createRoom',     //server, make a room
   S_Disconnect: 'disconnect',        //disconnect from server
-  S_Join: 'join',                    //server, I'm joining a room
+  S_Join: 'join',                    //server, I'm joining a room 
 });
 
 if(typeof module !== 'undefined')

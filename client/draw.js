@@ -8,15 +8,17 @@ const redraw = (time) => {
   ctx.clearRect(0, 0, 700, 500);
   
   //draw players
-  const keys = Object.keys(users);
+  const keys = Object.keys(users); 
   for(let i = 0; i < keys.length; i++) {
-    const player = players[keys[i]];
+    const player = users[keys[i]];
       
     //draw
     ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
+    ctx.fillRect(player.x + (i * 60), player.y, player.width, player.height);
   }
-    
+   
+    // Attacks aren't quite ready yet
+    /* 
     //get attacks
     const attackKeys = Object.keys(users);
     
@@ -35,8 +37,7 @@ const redraw = (time) => {
             ctx.fillStyle = attack.color;
             ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
         }
-  }
-  
-  
+  } */
+   
   animationFrame = requestAnimationFrame(redraw);
 };

@@ -6,10 +6,13 @@ let attacks = {};   //any attacks being sent
 let canvas;         //the canvas the game is on
 let ctx;           //the canvas context
 let mouseClicked = false;   //is the mouse currently clicked?
+let animationFrame; // current animatino frame
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
   document.querySelector("#lobby").style.display = "none";
+    
+  animationFrame = requestAnimationFrame(redraw);
 }
 
 // Function Name: getMouse()

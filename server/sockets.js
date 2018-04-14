@@ -116,6 +116,7 @@ const joinRoom = (sock, roomName) => {
 
   socket.join(roomName);
   socket.roomString = roomName;
+    
 
   const player = new Player(socket.hash, socket.playerName);
 
@@ -131,8 +132,10 @@ const joinRoom = (sock, roomName) => {
     hostAttackHit(socket);
     hostRoomUpdate(socket);
     
+     
+      
     socket.hostSocket = socket;
-    hosts[socket.hash] = socket;
+    hosts[socket.hash] = socket; 
   } else {
     socket.hostSocket = hosts[room.hostSocketHash];
     socket.hostSocket.emit(Messages.H_Player_Joined, player);

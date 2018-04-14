@@ -14,6 +14,12 @@ const onRoomUpdate = (sock) => {
   
   socket.on(Messages.C_Room_Update, (data) => {
     users = data;
+    console.log(users);
+  });
+    
+  socket.on(Messages.H_Become_Host, () =>
+  {
+      onHosted();
   });
 };
 
@@ -44,12 +50,21 @@ const onGameUpdate = (sock) => {
   });
 };
 
+const onHosted = () => {
+    socket.on(Messages.H_Player_Joined, (data) => { 
+        // Add a new user
+        console.log("Added user: " + data.hash);
+        users[data.hash] = data;
+        socket.emit(Messages.H_Room_Update,users);
+    });
+}
+
 /* ------ socket setup Functions ------ */
 
-const setupSocket = (sock) => {
-  
+const setupSocket = (sock) => { 
+    
   onLobby(socket);
   onRoomUpdate(socket);
   onGameUpdate(socket);
-  
+
 }
