@@ -10,6 +10,8 @@ let myHost;
 let mouseClicked = false;   //is the mouse currently clicked?
 let animationFrame; // current animatino frame
 
+
+
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
   document.querySelector("#lobby").style.display = "none";
@@ -39,24 +41,22 @@ const doMouseDown = (e) => {
         const keys = Object.keys(users);
 
         //check if the click was on any of the players
-        for (let i = 0; i < keys.length; i++){
-            let player = users[keys[i]];
+        for (var i = 0; i < keys.length; i++){
+            var player = users[keys[i]];
             
-            let posX = positions[player.playerNum].x - (player.width/2);
-            let posY = positions[player.playerNum].y - (player.height/2);
+            var posX = positions[player.playerNum].x - (player.width/2);
+            var posY = positions[player.playerNum].y - (player.height/2);
             
             //if the click was in the square, send it to the server for points;
             if (mouse.x >= posX && mouse.x <= posX + player.width){
                 if (mouse.y >= posY && mouse.y <= posY + player.height){
                     //check if player is you  
                     if (myHash === player.hash){ 
-                        //send a currency click event
-                        //console.log("Make babies");
+                        //send a currency click event 
                         socket.emit(Messages.C_Currency_Click);
                     }
                     else{
-                        //send an attack click event
-                        //console.log("Send babies");
+                        //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, 
                         {originHash: myHash, targetHash: player.hash, x: posX, 
                          y: posY, color: users[myHash].color});

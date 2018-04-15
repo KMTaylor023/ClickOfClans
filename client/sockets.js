@@ -13,8 +13,7 @@ const onRoomUpdate = (sock) => {
   const socket = sock;
   
   socket.on(Messages.C_Room_Update, (data) => {
-    users = data;
-    console.log(users);
+    users = data; 
   });
     
   socket.on(Messages.H_Become_Host, () =>
@@ -48,6 +47,7 @@ const onGameUpdate = (sock) => {
   //results of an attack click
   socket.on(Messages.C_Attack_Update, (data) => {
       // update each attack
+      // console.log(data);
       attacks[data.hash] = data;
   });
     

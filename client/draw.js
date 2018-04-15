@@ -41,12 +41,12 @@ const redraw = () => {
   }
    
 //get attacks
-const attackKeys = Object.keys(users);
+const attackKeys = Object.keys(attacks);
 
 //if an amount of keys, draw the attacks
 if (attackKeys.length > 0){
     //draw attacks
-    for(let i = 0; i < keys.length; i++) {
+    for(let i = 0; i < attackKeys.length; i++) {
         let attack = attacks[attackKeys[i]];
 
         if(attack.alpha < 1) attack.alpha += 0.05;

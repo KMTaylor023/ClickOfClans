@@ -12,6 +12,7 @@ var myHost = void 0;
 var mouseClicked = false; //is the mouse currently clicked?
 var animationFrame = void 0; // current animatino frame
 
+
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
     document.querySelector("#lobby").style.display = "none";
@@ -52,12 +53,10 @@ var doMouseDown = function doMouseDown(e) {
                 if (mouse.y >= posY && mouse.y <= posY + player.height) {
                     //check if player is you  
                     if (myHash === player.hash) {
-                        //send a currency click event
-                        //console.log("Make babies");
+                        //send a currency click event 
                         socket.emit(Messages.C_Currency_Click);
                     } else {
-                        //send an attack click event
-                        //console.log("Send babies");
+                        //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: posX,
                             y: posY, color: users[myHash].color });
                     }
@@ -130,12 +129,12 @@ var redraw = function redraw() {
   }
 
   //get attacks
-  var attackKeys = Object.keys(users);
+  var attackKeys = Object.keys(attacks);
 
   //if an amount of keys, draw the attacks
   if (attackKeys.length > 0) {
     //draw attacks
-    for (var _i = 0; _i < keys.length; _i++) {
+    for (var _i = 0; _i < attackKeys.length; _i++) {
       var attack = attacks[attackKeys[_i]];
 
       if (attack.alpha < 1) attack.alpha += 0.05;
@@ -159,22 +158,22 @@ var update = function update(time) {
 
 var updateAttack = function updateAttack(hash) {
 
-    var attack = attacks[hash];
-    var originPlayer = users[attack.originHash];
+    var at = attacks[hash];
+    var originPlayer = users[at.originHash];
     var oX = positions[originPlayer.playerNum].x;
     var oY = positions[originPlayer.playerNum].y;
-    var destPlayer = users[attack.targetHash];
+    var destPlayer = users[at.targetHash];
     var destX = positions[destPlayer.playerNum].x;
     var destY = positions[destPlayer.playerNum].y;
 
     var moveX = (destX - oX) / 10;
     var moveY = (destY - oY) / 10;
 
-    attack.x += moveX;
-    attack.y += moveY;
-    attack.updateTick += 1;
+    at.x += moveX;
+    at.y += moveY;
+    at.updateTick += 1;
 
-    if (attack.updateTick > 10) {
+    if (at.updateTick > 10) {
         console.log("ALL DONE");
     } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
 };
@@ -183,8 +182,7 @@ var onHosted = function onHosted() {
     document.querySelector("#debug").style.display = "block";
 
     socket.on(Messages.H_Player_Joined, function (data) {
-        // Add a new user
-        console.log("Added user: " + data.hash);
+        // Add a new user 
         users[data.hash] = data;
         socket.emit(Messages.H_Room_Update, users);
     });
@@ -195,10 +193,16 @@ var onHosted = function onHosted() {
         socket.emit(Messages.H_Currency_Result, users[hash]);
     });
 
-    socket.on(Messages.H_Attack_Click, function (attack) {
-        attacks[attack.hash] = attack;
-        socket.emit(Messages.H_Attack_Update, attacks);
-        setInterval(updateAttack(attack.hash), 500);
+    socket.on(Messages.H_Attack_Click, function (at) {
+        console.log("SENDING NEW ATTACK");
+        var a = Object.assign({}, at);
+
+        //console.log(a);
+        //console.log(at);
+
+        attacks[a.hash] = a;
+        socket.emit(Messages.H_Attack_Update, attacks[a.hash]);
+        setInterval(updateAttack, 5000, a.hash);
     });
 };
 'use strict';
@@ -404,7 +408,6 @@ var onRoomUpdate = function onRoomUpdate(sock) {
 
   socket.on(Messages.C_Room_Update, function (data) {
     users = data;
-    console.log(users);
   });
 
   socket.on(Messages.H_Become_Host, function () {
@@ -437,6 +440,7 @@ var onGameUpdate = function onGameUpdate(sock) {
   //results of an attack click
   socket.on(Messages.C_Attack_Update, function (data) {
     // update each attack
+    // console.log(data);
     attacks[data.hash] = data;
   });
 

@@ -5,12 +5,13 @@ class Attack {
     this.originHash = originHash;
     this.targetHash = targetHash;
     this.lastUpdate = new Date().getTime();
-    this.x = originX;
-    this.y = originY;
+    this.x = 0;
+    this.y = 0;
     this.width = 25;
     this.height = 25;
-    this.color = color; 
+    this.color = color;
     this.updateTick = 0;
+    this.alpha = 0;
   }
 }
 
