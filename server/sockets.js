@@ -2,6 +2,7 @@ const xxh = require('xxhashjs');
 // custom class for the player
 const Player = require('./classes/Player.js');
 const Room = require('./classes/Room.js');
+const Attack = require('./classes/Attack.js');
 
 // Pulls in the messages object, where all message names are stored for consistency
 const Messages = require('../client/Messages.js');
@@ -15,7 +16,7 @@ let io;
 // object to store room hosts
 const rooms = {};
 
-//lobby system sends rooms object, so directly attatching hosts is bad
+// lobby system sends rooms object, so directly attatching hosts is bad
 const hosts = {};
 
 
@@ -57,41 +58,41 @@ const updateLobby = (room) => {
   }
 };
 
-//host relay functions
-//send the host processed data from a click event to the whole room
+// host relay functions
+// send the host processed data from a click event to the whole room
 const hostClick = (sock) => {
-    let socket = sock;
-    
-    socket.on(Messages.H_Currency_Result, (data) => {
-        io.sockets.in(socket.roomString).emit(Messages.C_Currency_Result, data);
-    });
+  const socket = sock;
+
+  socket.on(Messages.H_Currency_Result, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Currency_Result, data);
+  });
 };
 
-//send the host processed data from a fired attack event to the whole room
+// send the host processed data from a fired attack event to the whole room
 const hostAttackFired = (sock) => {
-    let socket = sock;
-    
-    socket.on(Messages.H_Attack_Result, (data) => {
-        io.sockets.in(socket.roomString).emit(Messages.C_Attack_Result, data);
-    });
+  const socket = sock;
+
+  socket.on(Messages.H_Attack_Update, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Attack_Update, data);
+  });
 };
 
-//send the host processed data from an attack hit event to the whole room
+// send the host processed data from an attack hit event to the whole room
 const hostAttackHit = (sock) => {
-    let socket = sock;
-    
-    socket.on(Messages.H_Attack_Hit, (data) => {
-        io.sockets.in(socket.roomString).emit(Messages.C_Attack_Hit, data);
-    });
+  const socket = sock;
+
+  socket.on(Messages.H_Attack_Hit, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Attack_Hit, data);
+  });
 };
 
-//send the player data for the room to the whole room
+// send the player data for the room to the whole room
 const hostRoomUpdate = (sock) => {
-    let socket = sock;
-    
-    socket.on(Messages.H_Room_Update, (data) => {
-        io.sockets.in(socket.roomString).emit(Messages.C_Room_Update, data);
-    });
+  const socket = sock;
+
+  socket.on(Messages.H_Room_Update, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Room_Update, data);
+  });
 };
 
 // adds player to given room
@@ -116,31 +117,29 @@ const joinRoom = (sock, roomName) => {
 
   socket.join(roomName);
   socket.roomString = roomName;
-    
+
 
   const player = new Player(socket.hash, socket.playerName);
-
-  //what to do if there is or isn't a host
+  player.playerNum = room.players.length;
+  // what to do if there is or isn't a host
   if (room.players.length === 0) {
     room.hostSocketHash = socket.hash;
-    socket.emit(Messages.H_Become_Host,{});
+    socket.emit(Messages.H_Become_Host, {});
     socket.host = true;
-    
-    //set up host listeners
+
+    // set up host listeners
     hostClick(socket);
     hostAttackFired(socket);
     hostAttackHit(socket);
     hostRoomUpdate(socket);
-    
-     
-      
+
+
     socket.hostSocket = socket;
-    hosts[socket.hash] = socket; 
+    hosts[socket.hash] = socket;
   } else {
     socket.hostSocket = hosts[room.hostSocketHash];
-    socket.hostSocket.emit(Messages.H_Player_Joined, player);
   }
-    
+  socket.hostSocket.emit(Messages.H_Player_Joined, player);
 
 
   room.players.push(socket.hash);
@@ -248,22 +247,24 @@ const setupSockets = (ioServer) => {
     onDisconnect(socket);
     onCreateRoom(socket);
 
+    socket.emit(Messages.S_SetUser, socket.hash);
 
     socket.on(Messages.C_Currency_Click, () => {
       // send the hash of the clicking user to the room host
-      socket.roomHost.emit(Messages.H_Currency_Click, socket.hash);
+      socket.hostSocket.emit(Messages.H_Currency_Click, socket.hash);
     });
 
     socket.on(Messages.C_Attack_Click, (data) => {
-        //get a hash for attack
-        const hash = doHash(socket.id);
-            
-        //make a new attack
-        let attack = new Attack(hash, data.originHash, data.targetHash, data.x, data.y, data.color);
-        
+      // get a hash for attack
+      const ahash = doHash(socket.id);
+
+      // make a new attack
+      const attack = new Attack(ahash, data.originHash, data.targetHash, data.x, data.y, data.color);
+
       // send the target data to the host
       socket.roomHost.emit(Messages.H_Attack_Click, attack);
     });
+
 
     enterLobby(socket);
   });

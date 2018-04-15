@@ -7,6 +7,8 @@ var users = {}; //the users in the lobby the client is in
 var attacks = {}; //any attacks being sent
 var canvas = void 0; //the canvas the game is on
 var ctx = void 0; //the canvas context
+var myHash = void 0;
+var myHost = void 0;
 var mouseClicked = false; //is the mouse currently clicked?
 var animationFrame = void 0; // current animatino frame
 
@@ -14,7 +16,7 @@ var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
     document.querySelector("#lobby").style.display = "none";
 
-    animationFrame = requestAnimationFrame(redraw);
+    animationFrame = requestAnimationFrame(update);
 };
 
 // Function Name: getMouse()
@@ -42,17 +44,22 @@ var doMouseDown = function doMouseDown(e) {
         for (var i = 0; i < keys.length; i++) {
             var player = users[keys[i]];
 
+            var posX = positions[player.playerNum].x - player.width / 2;
+            var posY = positions[player.playerNum].y - player.height / 2;
+
             //if the click was in the square, send it to the server for points;
-            if (mouse.x >= square.x && mouse.x <= square.x + square.width) {
-                if (mouse.y >= square.y && mouse.y <= square.y + square.height) {
-                    //check if player is you
-                    if (socket.hash === player.hash) {
+            if (mouse.x >= posX && mouse.x <= posX + player.width) {
+                if (mouse.y >= posY && mouse.y <= posY + player.height) {
+                    //check if player is you  
+                    if (myHash === player.hash) {
                         //send a currency click event
-                        socket.emit(Messages.C_Currency_Click, { hash: socket.hash });
+                        //console.log("Make babies");
+                        socket.emit(Messages.C_Currency_Click);
                     } else {
                         //send an attack click event
-                        socket.emit(Messages.C_Currency_Click, { originHash: socket.hash, targetHash: player.hash, x: users[socket.hash].x,
-                            y: users[socket.hash].y, color: users[socket.hash].color });
+                        //console.log("Send babies");
+                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: posX,
+                            y: posY, color: users[myHash].color });
                     }
                 }
             }
@@ -89,46 +96,111 @@ var lerp = function lerp(v0, v1, alpha) {
   return (1 - alpha) * v0 + alpha * v1;
 };
 
+var positions = [{ x: 100, y: 100 }, { x: 600, y: 400 }, { x: 100, y: 400 }, { x: 600, y: 100 }];
+var colors = ["red", "blue", "yellow", "green"];
+
 //redraw with requestAnimationFrame
-var redraw = function redraw(time) {
+var redraw = function redraw() {
   //clear screen
   ctx.clearRect(0, 0, 700, 500);
+  ctx.fillStyle = "grey";
+  ctx.fillRect(0, 0, 700, 500);
 
   //draw players
   var keys = Object.keys(users);
   for (var i = 0; i < keys.length; i++) {
     var player = users[keys[i]];
 
-    //draw
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x + i * 60, player.y, player.width, player.height);
+    var halfWidth = player.width / 2;
+    var halfHeight = player.height / 2;
+    var posX = positions[player.playerNum].x - halfWidth;
+    var posY = positions[player.playerNum].y - halfHeight;
+
+    //draw outer box
+    ctx.fillStyle = colors[player.playerNum];
+    ctx.fillRect(posX, posY, player.width, player.height);
+
+    // draw inner box
+    ctx.fillStyle = "white";
+    ctx.fillRect(posX + 5, posY + 5, player.width - 10, player.height - 10);
+
+    // draw their population count
+    ctx.fillStyle = "black";
+    ctx.fillText(player.population, posX + halfWidth, posY + halfHeight, 100);
   }
 
-  // Attacks aren't quite ready yet
-  /* 
   //get attacks
-  const attackKeys = Object.keys(users);
-  
-  //if an amount of keys, draw the attacks
-  if (attackKeys.length > 0){
-      //draw attacks
-      for(let i = 0; i < keys.length; i++) {
-          let attack = attacks[attackKeys[i]];
-          
-          if(attack.alpha < 1) attack.alpha += 0.05;
-          //lerp
-          attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-          player.y = lerp(attack.prevY, attack.destY, attack.alpha);
-          
-          //draw
-          ctx.fillStyle = attack.color;
-          ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
-      }
-  } */
+  var attackKeys = Object.keys(users);
 
-  animationFrame = requestAnimationFrame(redraw);
+  //if an amount of keys, draw the attacks
+  if (attackKeys.length > 0) {
+    //draw attacks
+    for (var _i = 0; _i < keys.length; _i++) {
+      var attack = attacks[attackKeys[_i]];
+
+      if (attack.alpha < 1) attack.alpha += 0.05;
+      //lerp
+      attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+      attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+
+      //draw
+      ctx.fillStyle = attack.color;
+      ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
+    }
+  }
+};
+
+var update = function update(time) {
+  redraw();
+
+  animationFrame = requestAnimationFrame(update);
 };
 "use strict";
+
+var updateAttack = function updateAttack(hash) {
+
+    var attack = attacks[hash];
+    var originPlayer = users[attack.originHash];
+    var oX = positions[originPlayer.playerNum].x;
+    var oY = positions[originPlayer.playerNum].y;
+    var destPlayer = users[attack.targetHash];
+    var destX = positions[destPlayer.playerNum].x;
+    var destY = positions[destPlayer.playerNum].y;
+
+    var moveX = (destX - oX) / 10;
+    var moveY = (destY - oY) / 10;
+
+    attack.x += moveX;
+    attack.y += moveY;
+    attack.updateTick += 1;
+
+    if (attack.updateTick > 10) {
+        console.log("ALL DONE");
+    } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
+};
+
+var onHosted = function onHosted() {
+    document.querySelector("#debug").style.display = "block";
+
+    socket.on(Messages.H_Player_Joined, function (data) {
+        // Add a new user
+        console.log("Added user: " + data.hash);
+        users[data.hash] = data;
+        socket.emit(Messages.H_Room_Update, users);
+    });
+
+    socket.on(Messages.H_Currency_Click, function (hash) {
+        users[hash].population += 1;
+        users[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result, users[hash]);
+    });
+
+    socket.on(Messages.H_Attack_Click, function (attack) {
+        attacks[attack.hash] = attack;
+        socket.emit(Messages.H_Attack_Update, attacks);
+        setInterval(updateAttack(attack.hash), 500);
+    });
+};
 'use strict';
 
 var gamelist = {};
@@ -292,7 +364,7 @@ var Messages = Object.freeze({
   C_Currency_Click: 'c_currencyClick', //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult', //the host told me a currency click happened
   C_Attack_Click: 'c_attackClick', //Im firing an attack
-  C_Attack_Result: 'c_attackResult', //the host told me an attack fired
+  C_Attack_Update: 'c_attackResult', //the host told me an attack fired
   C_Attack_Hit: 'c_attackHit', //the host said an attack hit
   C_Room_Update: 'c_roomUpdate', //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer', //a player left the server
@@ -302,14 +374,15 @@ var Messages = Object.freeze({
   H_Currency_Click: 'h_currencyClick', //process a currency click
   H_Currency_Result: 'h_currencyResult', //results of a currency click
   H_Attack_Click: 'h_attackClick', //process an attack click
-  H_Attack_Result: 'h_attackResult', //results of an attack click
+  H_Attack_Update: 'h_attackUpdate', //results of an attack click
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
   //Server messages
   S_Create_Room: 's_createRoom', //server, make a room
   S_Disconnect: 'disconnect', //disconnect from server
-  S_Join: 'join' //server, I'm joining a room 
+  S_Join: 'join', //server, I'm joining a room 
+  S_SetUser: 's_setUser'
 });
 
 if (typeof module !== 'undefined') module.exports = Messages;
@@ -337,6 +410,11 @@ var onRoomUpdate = function onRoomUpdate(sock) {
   socket.on(Messages.H_Become_Host, function () {
     onHosted();
   });
+
+  socket.on(Messages.S_SetUser, function (hash, host) {
+    myHash = hash;
+    myHost = host;
+  });
 };
 
 //get the game updates from the host
@@ -345,33 +423,27 @@ var onGameUpdate = function onGameUpdate(sock) {
 
   //results of a currency click
   socket.on(Messages.C_Currency_Result, function (data) {
-    //ignore old messages
+    //ignore old messages 
+
     if (users[data.hash].lastUpdate >= data.lastUpdate) {
+      console.log("old message recieved. discarding");
       return;
     }
+
     //update the data
     users[data.hash] = data;
   });
 
   //results of an attack click
-  socket.on(Messages.C_Attack_Result, function (data) {
-    //add the attack to the screen
-    attacks.push(data);
+  socket.on(Messages.C_Attack_Update, function (data) {
+    // update each attack
+    attacks[data.hash] = data;
   });
 
   //an attack hit
   socket.on(Messages.C_Attack_Hit, function (data) {
     //remove the attack that hit from attacks somehow
     //do attack hitting effects
-  });
-};
-
-var onHosted = function onHosted() {
-  socket.on(Messages.H_Player_Joined, function (data) {
-    // Add a new user
-    console.log("Added user: " + data.hash);
-    users[data.hash] = data;
-    socket.emit(Messages.H_Room_Update, users);
   });
 };
 

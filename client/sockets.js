@@ -21,6 +21,11 @@ const onRoomUpdate = (sock) => {
   {
       onHosted();
   });
+
+  socket.on(Messages.S_SetUser, (hash, host) =>{
+     myHash = hash; 
+      myHost = host;
+  });
 };
 
 //get the game updates from the host
@@ -29,18 +34,21 @@ const onGameUpdate = (sock) => {
   
   //results of a currency click
   socket.on(Messages.C_Currency_Result, (data) => {
-      //ignore old messages
+      //ignore old messages 
+      
       if (users[data.hash].lastUpdate >= data.lastUpdate){
+          console.log("old message recieved. discarding");
           return;
       }
+      
       //update the data
-      users[data.hash] = data;
+      users[data.hash] = data;  
   });
     
   //results of an attack click
-  socket.on(Messages.C_Attack_Result, (data) => {
-      //add the attack to the screen
-      attacks.push(data);
+  socket.on(Messages.C_Attack_Update, (data) => {
+      // update each attack
+      attacks[data.hash] = data;
   });
     
   //an attack hit
@@ -50,14 +58,6 @@ const onGameUpdate = (sock) => {
   });
 };
 
-const onHosted = () => {
-    socket.on(Messages.H_Player_Joined, (data) => { 
-        // Add a new user
-        console.log("Added user: " + data.hash);
-        users[data.hash] = data;
-        socket.emit(Messages.H_Room_Update,users);
-    });
-}
 
 /* ------ socket setup Functions ------ */
 

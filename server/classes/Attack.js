@@ -9,7 +9,8 @@ class Attack {
     this.y = originY;
     this.width = 25;
     this.height = 25;
-    this.color = color;
+    this.color = color; 
+    this.updateTick = 0;
   }
 }
 

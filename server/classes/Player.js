@@ -10,6 +10,7 @@ class Player {
     // via constructor
     this.x = 0; // x location on screen
     this.y = 0; // y location on screen
+    this.playerNum = 0;
     this.width = 100;
     this.height = 100;
     this.color = `rgb(${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)})`;
