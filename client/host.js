@@ -13,8 +13,10 @@ const updateAttack = (hash) =>{
     var moveX = (destX - oX) / 10;
     var moveY = (destY - oY) / 10;   
     
-    at.x += moveX;
-    at.y += moveY;
+    console.log(at);
+    
+    //at.x += moveX;
+    //at.y += moveY;
     at.updateTick += 1; 
      
     if(at.updateTick > 10)
@@ -42,13 +44,14 @@ const onHosted = () => {
     
     socket.on(Messages.H_Attack_Click, (at) => {
         console.log("SENDING NEW ATTACK");
-        const a = Object.assign({},at); 
+        //const a = Object.assign({},at); 
         
         //console.log(a);
-        //console.log(at);
+        const x = at.x;
+        console.log(x);
         
-        attacks[a.hash] = a;
-        socket.emit(Messages.H_Attack_Update,attacks[a.hash]);
-        setInterval(updateAttack, 5000, a.hash);
+        attacks[at.hash] = at;
+        socket.emit(Messages.H_Attack_Update,attacks[at.hash]);
+        setInterval(updateAttack, 5000, at.hash);
     });
 }

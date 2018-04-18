@@ -50,9 +50,11 @@ if (attackKeys.length > 0){
         let attack = attacks[attackKeys[i]];
 
         if(attack.alpha < 1) attack.alpha += 0.05;
+       
+        //consol
         //lerp
-        attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-        attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+        //attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+        //attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
         //draw
         ctx.fillStyle = attack.color;
