@@ -258,14 +258,19 @@ const setupSockets = (ioServer) => {
       // get a hash for attack
       const ahash = doHash(socket.id);
 
-      //const d = Object.assign({},data);
-        
-      // make a new attack
-      //const attack = new Attack(ahash, d.originHash, d.targetHash, d.x, d.y, d.color);
-      const attack = new Attack(ahash, data.originHash, data.targetHash, data.x, data.y, data.color);
+      // const d = Object.assign({},data);
 
-        console.log(attack.x + ", " + attack.y);
-        
+      // make a new attack
+      // const attack = new Attack(ahash, d.originHash, d.targetHash, d.x, d.y, d.color);
+      const attack = new Attack(
+        ahash,
+        data.originHash,
+        data.targetHash,
+        data.x,
+        data.y,
+        data.color,
+      );
+
       // send the target data to the host
       socket.hostSocket.emit(Messages.H_Attack_Click, attack);
     });

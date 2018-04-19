@@ -39,6 +39,9 @@ const doMouseDown = (e) => {
     if (!mouseClicked){
         //get the keys
         const keys = Object.keys(users);
+        
+        var myX =  positions[users[myHash].playerNum].x;
+        var myY =  positions[users[myHash].playerNum].y;
 
         //check if the click was on any of the players
         for (var i = 0; i < keys.length; i++){
@@ -58,8 +61,8 @@ const doMouseDown = (e) => {
                     else{
                         //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, 
-                        {originHash: myHash, targetHash: player.hash, x: posX, 
-                         y: posY, color: users[myHash].color});
+                        {originHash: myHash, targetHash: player.hash, x: myX, 
+                         y: myY, color: users[myHash].color});
                     }
                 }
             }

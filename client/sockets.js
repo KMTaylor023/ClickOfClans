@@ -35,8 +35,7 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Currency_Result, (data) => {
       //ignore old messages 
       
-      if (users[data.hash].lastUpdate >= data.lastUpdate){
-          console.log("old message recieved. discarding");
+      if (users[data.hash].lastUpdate >= data.lastUpdate){ 
           return;
       }
       
@@ -48,6 +47,9 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Attack_Update, (data) => {
       // update each attack
       // console.log(data);
+      if(!attacks.hasOwnProperty(data.hash))
+          users[data.originHash].population -= 10;
+          
       attacks[data.hash] = data;
   });
     
@@ -55,6 +57,9 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Attack_Hit, (data) => {
       //remove the attack that hit from attacks somehow
       //do attack hitting effects
+      let at = attacks[data.hash];
+      users[at.targetHash].population -= 50;
+      delete attacks[data.hash]; 
   });
 };
 

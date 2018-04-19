@@ -53,12 +53,12 @@ if (attackKeys.length > 0){
        
         //consol
         //lerp
-        //attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-        //attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+        attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+        attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
         //draw
         ctx.fillStyle = attack.color;
-        ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
+        ctx.fillRect(attack.x - (attack.width/2), attack.y - (attack.height/2), attack.width, attack.height);
     }
   } 
    
@@ -67,5 +67,5 @@ if (attackKeys.length > 0){
 const update = (time) => {
     redraw(); 
     
-  animationFrame = requestAnimationFrame(update);
+    animationFrame = requestAnimationFrame(update);
 };

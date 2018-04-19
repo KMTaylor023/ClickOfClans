@@ -41,6 +41,9 @@ var doMouseDown = function doMouseDown(e) {
         //get the keys
         var keys = Object.keys(users);
 
+        var myX = positions[users[myHash].playerNum].x;
+        var myY = positions[users[myHash].playerNum].y;
+
         //check if the click was on any of the players
         for (var i = 0; i < keys.length; i++) {
             var player = users[keys[i]];
@@ -57,8 +60,8 @@ var doMouseDown = function doMouseDown(e) {
                         socket.emit(Messages.C_Currency_Click);
                     } else {
                         //send an attack click event 
-                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: posX,
-                            y: posY, color: users[myHash].color });
+                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
+                            y: myY, color: users[myHash].color });
                     }
                 }
             }
@@ -141,12 +144,12 @@ var redraw = function redraw() {
 
       //consol
       //lerp
-      //attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-      //attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+      attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+      attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
       //draw
       ctx.fillStyle = attack.color;
-      ctx.fillRect(attack.x, attack.y, attack.width, attack.height);
+      ctx.fillRect(attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
     }
   }
 };
@@ -158,8 +161,12 @@ var update = function update(time) {
 };
 "use strict";
 
+var attackIntervals = {};
+
 var updateAttack = function updateAttack(hash) {
 
+    // This calculation shouldn't actually have to happen
+    // Do this calculation on Attack initialization
     var at = attacks[hash];
     var originPlayer = users[at.originHash];
     var oX = positions[originPlayer.playerNum].x;
@@ -168,17 +175,21 @@ var updateAttack = function updateAttack(hash) {
     var destX = positions[destPlayer.playerNum].x;
     var destY = positions[destPlayer.playerNum].y;
 
-    var moveX = (destX - oX) / 10;
-    var moveY = (destY - oY) / 10;
+    var moveX = (destX - oX) / 100;
+    var moveY = (destY - oY) / 100;
 
-    console.log(at);
+    //console.log(at);
 
-    //at.x += moveX;
-    //at.y += moveY;
+    at.destX += moveX;
+    at.destY += moveY;
     at.updateTick += 1;
 
-    if (at.updateTick > 10) {
-        console.log("ALL DONE");
+    if (at.updateTick > 100) {
+        socket.emit(Messages.H_Attack_Hit, attacks[hash]);
+
+        // Delete and clear this interval
+        clearInterval(attackIntervals[hash]);
+        delete attackIntervals[hash];
     } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
 };
 
@@ -198,16 +209,12 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
-        console.log("SENDING NEW ATTACK");
-        //const a = Object.assign({},at); 
-
-        //console.log(a);
-        var x = at.x;
-        console.log(x);
+        if (!attacks.hasOwnProperty(at.hash)) users[at.originHash].population -= 10;
 
         attacks[at.hash] = at;
+
         socket.emit(Messages.H_Attack_Update, attacks[at.hash]);
-        setInterval(updateAttack, 5000, at.hash);
+        attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 };
 'use strict';
@@ -434,7 +441,6 @@ var onGameUpdate = function onGameUpdate(sock) {
     //ignore old messages 
 
     if (users[data.hash].lastUpdate >= data.lastUpdate) {
-      console.log("old message recieved. discarding");
       return;
     }
 
@@ -446,6 +452,8 @@ var onGameUpdate = function onGameUpdate(sock) {
   socket.on(Messages.C_Attack_Update, function (data) {
     // update each attack
     // console.log(data);
+    if (!attacks.hasOwnProperty(data.hash)) users[data.originHash].population -= 10;
+
     attacks[data.hash] = data;
   });
 
@@ -453,6 +461,9 @@ var onGameUpdate = function onGameUpdate(sock) {
   socket.on(Messages.C_Attack_Hit, function (data) {
     //remove the attack that hit from attacks somehow
     //do attack hitting effects
+    var at = attacks[data.hash];
+    users[at.targetHash].population -= 50;
+    delete attacks[data.hash];
   });
 };
 

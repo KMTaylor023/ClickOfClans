@@ -14,8 +14,8 @@ class Player {
     this.width = 100;
     this.height = 100;
     this.color = `rgb(${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)})`;
-    //structures array: position 0 = horizontal lane, position 1 = diagonal lane,
-    //position 3 = vertical lane
+    // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
+    // position 3 = vertical lane
     this.structures = [null, null, null];
   }
 }

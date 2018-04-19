@@ -1,7 +1,10 @@
 
+let attackIntervals = {};
 
 const updateAttack = (hash) =>{
      
+    // This calculation shouldn't actually have to happen
+    // Do this calculation on Attack initialization
     var at = attacks[hash];  
     var originPlayer = users[at.originHash];
     var oX = positions[originPlayer.playerNum].x;
@@ -10,18 +13,22 @@ const updateAttack = (hash) =>{
     var destX = positions[destPlayer.playerNum].x;
     var destY = positions[destPlayer.playerNum].y;
      
-    var moveX = (destX - oX) / 10;
-    var moveY = (destY - oY) / 10;   
+    var moveX = (destX - oX) / 100;
+    var moveY = (destY - oY) / 100;   
     
-    console.log(at);
+    //console.log(at);
     
-    //at.x += moveX;
-    //at.y += moveY;
+    at.destX += moveX;
+    at.destY += moveY;
     at.updateTick += 1; 
      
-    if(at.updateTick > 10)
+    if(at.updateTick > 100)
     {
-        console.log("ALL DONE");
+        socket.emit(Messages.H_Attack_Hit,attacks[hash]);
+        
+        // Delete and clear this interval
+        clearInterval(attackIntervals[hash]); 
+        delete attackIntervals[hash];
     }else
         socket.emit(Messages.H_Attack_Update,attacks[hash]);
     
@@ -42,16 +49,13 @@ const onHosted = () => {
         socket.emit(Messages.H_Currency_Result,users[hash]);
     });
     
-    socket.on(Messages.H_Attack_Click, (at) => {
-        console.log("SENDING NEW ATTACK");
-        //const a = Object.assign({},at); 
-        
-        //console.log(a);
-        const x = at.x;
-        console.log(x);
+    socket.on(Messages.H_Attack_Click, (at) => { 
+        if(!attacks.hasOwnProperty(at.hash))
+            users[at.originHash].population -= 10;
         
         attacks[at.hash] = at;
+        
         socket.emit(Messages.H_Attack_Update,attacks[at.hash]);
-        setInterval(updateAttack, 5000, at.hash);
+        attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 }
