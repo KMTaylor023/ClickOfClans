@@ -7,3 +7,17 @@
  .canvas { 
   border: 1px solid black; 
 }
+
+.flexbox {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.ad {
+    
+}
+
+#ad1{
+    float: right;
+}
+
