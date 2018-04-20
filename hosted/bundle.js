@@ -475,3 +475,76 @@ var setupSocket = function setupSocket(sock) {
   onRoomUpdate(socket);
   onGameUpdate(socket);
 };
+'use strict';
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var STRUCTURE_TYPES = {
+  FARM: 'farm',
+  BSMITH: 'blacksmith',
+  SHIELD: 'shield'
+};
+
+var INFO = {};
+
+//the stats for the farm
+INFO[STRUCTURE_TYPES.FARM] = {
+  health: 50,
+  color: 'rgb(34,139,34)',
+  popgen: 2,
+  atkmult: 1,
+  defmult: 1
+};
+
+//the stats for the blacksmith
+INFO[STRUCTURE_TYPES.BSMITH] = {
+  health: 100,
+  color: 'rgb(255,0,0)',
+  popgen: 0,
+  atkmult: 2,
+  defmult: 1
+};
+
+//the stats for the shield
+INFO[STRUCTURE_TYPES.SHIELD] = {
+  health: 300,
+  color: 'rgb(169,169,169)',
+  popgen: 0,
+  atkmult: 1,
+  defmult: 2
+};
+
+//deals damage to structure
+var takeDamage = function takeDamage(dmg, isBonus) {
+  undefined.health -= dmg / undefined.defmult;
+  if (undefined.health < 0) {
+    undefined.health = 0;
+    undefined.destroyed = true;
+  }
+};
+
+// Structure class
+
+var Structure = function Structure(x, y, type) {
+  _classCallCheck(this, Structure);
+
+  this.x = x;
+  this.y = y;
+  this.type = type;
+
+  var inf = INFO[type];
+
+  this.color = inf.color;
+  this.health = inf.health;
+  this.popgen = inf.popgen;
+  this.atkmult = inf.atkmult;
+  this.defmult = inf.defmult;
+  this.destroyed = false;
+
+  this.takeDamage = takeDamage.bind(this);
+};
+
+;
+
+module.exports.newStructure = Structure;
+module.exports.type = STRUCTURE_TYPES;
