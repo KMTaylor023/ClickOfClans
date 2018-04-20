@@ -46,11 +46,14 @@ const onGameUpdate = (sock) => {
   //results of an attack click
   socket.on(Messages.C_Attack_Update, (data) => {
       // update each attack
-      // console.log(data);
-      if(!attacks.hasOwnProperty(data.hash))
-          users[data.originHash].population -= 10;
-          
-      attacks[data.hash] = data;
+      // console.log(data);     
+      attacks[data.hash].destX = data.destX;
+      attacks[data.hash].destY = data.destY;
+  });
+    
+  socket.on(Messages.C_Attack_Create, (data) => {
+     users[data.originHash].population -= 10;
+     attacks[data.hash] = data; 
   });
     
   //an attack hit

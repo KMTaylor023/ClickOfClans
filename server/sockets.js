@@ -77,6 +77,14 @@ const hostAttackFired = (sock) => {
   });
 };
 
+const hostAttackCreate = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.H_Attack_Create, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Attack_Create, data);
+  });
+};
+
 // send the host processed data from an attack hit event to the whole room
 const hostAttackHit = (sock) => {
   const socket = sock;
@@ -131,6 +139,7 @@ const joinRoom = (sock, roomName) => {
     hostClick(socket);
     hostAttackFired(socket);
     hostAttackHit(socket);
+    hostAttackCreate(socket);
     hostRoomUpdate(socket);
 
 

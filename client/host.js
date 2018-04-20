@@ -50,12 +50,8 @@ const onHosted = () => {
     });
     
     socket.on(Messages.H_Attack_Click, (at) => { 
-        if(!attacks.hasOwnProperty(at.hash))
-            users[at.originHash].population -= 10;
-        
         attacks[at.hash] = at;
-        
-        socket.emit(Messages.H_Attack_Update,attacks[at.hash]);
+        socket.emit(Messages.H_Attack_Create,attacks[at.hash]);
         attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 }
