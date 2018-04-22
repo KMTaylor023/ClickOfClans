@@ -93,7 +93,6 @@ const init = () => {
   document.querySelector("#ad2").style.top = adPosition + "px";
     
   socket = io.connect();
-    
   setupSocket(socket);
 };
 

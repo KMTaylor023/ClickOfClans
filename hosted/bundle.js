@@ -91,7 +91,6 @@ var init = function init() {
     document.querySelector("#ad2").style.top = adPosition + "px";
 
     socket = io.connect();
-
     setupSocket(socket);
 };
 
@@ -418,8 +417,8 @@ var onAds = function onAds(sock) {
     var ad1 = document.querySelector("#ad1");
     var ad2 = document.querySelector("#ad2");
 
-    //ad1.src = data.ad1;
-    //ad2.src = data.ad2;
+    ad1.src = "./assets/" + data.ad1;
+    ad2.src = "./assets/" + data.ad2;
   });
 };
 
@@ -568,5 +567,5 @@ var Structure = function Structure(x, y, type) {
 
 ;
 
-module.exports.newStructure = Structure;
-module.exports.type = STRUCTURE_TYPES;
+//module.exports.newStructure = Structure;
+//module.exports.type = STRUCTURE_TYPES;

@@ -1,35 +1,31 @@
 const http = require('http');
-const fs = require('fs');
-const url = require('url');
+const path = require('path');
+const express = require('express');
 const socketio = require('socket.io');
 const setupSockets = require('./sockets.js');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
-const index = fs.readFileSync(`${__dirname}/../hosted/index.html`);
-const bundle = fs.readFileSync(`${__dirname}/../hosted/bundle.js`);
-const style = fs.readFileSync(`${__dirname}/../hosted/style.css`);
+// Create a new express app
+const app = express();
 
-// deals with http requests
-const onRequest = (request, response) => {
-  const parsedURL = url.parse(request.url);
+app.use('/assets', express.static(path.resolve(`${__dirname}/../hosted/`)));
 
-  if (parsedURL.pathname === '/bundle.js') {
-    response.writeHead(200, { 'Content-Type': 'application/json' });
-    response.write(bundle);
-  } else if (parsedURL.pathname === '/style.css') {
-    response.writeHead(200, { 'Content-Type': 'text/css' });
-    response.write(style);
-  } else {
-    response.writeHead(200, { 'Content-Type': 'text/html' });
-    response.write(index);
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(`${__dirname}/../hosted/index.html`));
+});
+
+const server = http.createServer(app);
+
+const io = socketio(server);
+
+// pass our socket server to our socket function
+setupSockets(io);
+
+// start listening for traffic
+server.listen(port, (err) => {
+  if (err) {
+    throw err;
   }
-  response.end();
-};
-
-const app = http.createServer(onRequest).listen(port);
-
-console.log(`Listening on 127.0.0.1:${port}`);
-
-
-setupSockets(socketio(app));
+  console.log(`Listening on port ${port}`);
+});

@@ -268,13 +268,13 @@ const setupSockets = (ioServer) => {
     socket.hash = hash;
 
     defaultSocket(socket);
-    sendAds(socket);
 
     onJoinRoom(socket);
     onDisconnect(socket);
     onCreateRoom(socket);
 
     socket.emit(Messages.S_SetUser, socket.hash);
+    sendAds(socket);
 
     socket.on(Messages.C_Currency_Click, () => {
       // send the hash of the clicking user to the room host

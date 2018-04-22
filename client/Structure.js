@@ -63,5 +63,5 @@ class Structure {
   }
 };
 
-module.exports.newStructure = Structure;
-module.exports.type = STRUCTURE_TYPES;
+//module.exports.newStructure = Structure;
+//module.exports.type = STRUCTURE_TYPES;

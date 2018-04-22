@@ -8,8 +8,8 @@ const onAds = (sock) => {
         var ad1 = document.querySelector("#ad1");
         var ad2 = document.querySelector("#ad2");
         
-        //ad1.src = data.ad1;
-        //ad2.src = data.ad2;
+        ad1.src = "./assets/" + data.ad1;
+        ad2.src = "./assets/" + data.ad2;
     });
 };
 
