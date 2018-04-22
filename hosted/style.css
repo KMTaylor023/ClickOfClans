@@ -8,16 +8,21 @@
   border: 1px solid black; 
 }
 
-.flexbox {
-    display: flex;
-    flex-wrap: wrap;
-}
-
 .ad {
     
 }
 
 #ad1{
     float: right;
+    width: 128px;
+    height: 500px;
+    padding-right: 50px;
 }
 
+#ad2{
+    position:absolute;
+    left: 20px;
+    top: 660px;
+    height: 128px;
+    width: 700px;
+}

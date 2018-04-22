@@ -1,5 +1,18 @@
 /* ++++++ socket setup Functions ++++++ */
 
+const onAds = (sock) => {
+    const socket = sock;
+    
+    socket.on(Messages.C_Get_Ads, (data) => {
+        //get ad1 and ad2 elements
+        var ad1 = document.querySelector("#ad1");
+        var ad2 = document.querySelector("#ad2");
+        
+        //ad1.src = data.ad1;
+        //ad2.src = data.ad2;
+    });
+};
+
 const onLobby = (sock) => {
   const socket = sock;
   
@@ -70,7 +83,8 @@ const onGameUpdate = (sock) => {
 /* ------ socket setup Functions ------ */
 
 const setupSocket = (sock) => { 
-    
+  
+  onAds(socket);
   onLobby(socket);
   onRoomUpdate(socket);
   onGameUpdate(socket);

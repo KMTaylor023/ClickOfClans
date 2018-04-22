@@ -86,6 +86,10 @@ var init = function init() {
     canvas.onmousedown = doMouseDown;
     canvas.onmouseup = doMouseUp;
 
+    //position ad2 at bottom of the screen
+    var adPosition = window.innerHeight - 140;
+    document.querySelector("#ad2").style.top = adPosition + "px";
+
     socket = io.connect();
 
     setupSocket(socket);
@@ -209,11 +213,8 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
-        if (!attacks.hasOwnProperty(at.hash)) users[at.originHash].population -= 10;
-
         attacks[at.hash] = at;
-
-        socket.emit(Messages.H_Attack_Update, attacks[at.hash]);
+        socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
         attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 };
@@ -381,9 +382,11 @@ var Messages = Object.freeze({
   C_Currency_Result: 'c_currencyResult', //the host told me a currency click happened
   C_Attack_Click: 'c_attackClick', //Im firing an attack
   C_Attack_Update: 'c_attackResult', //the host told me an attack fired
+  C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
   C_Attack_Hit: 'c_attackHit', //the host said an attack hit
   C_Room_Update: 'c_roomUpdate', //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer', //a player left the server
+  C_Get_Ads: 'c_ads', //dispaly some ads
   //Host messages
   H_Player_Joined: 'h_addPlayer', //a new player joined the server
   H_Player_Left: 'h_removePlayer', //a player left the server
@@ -391,6 +394,7 @@ var Messages = Object.freeze({
   H_Currency_Result: 'h_currencyResult', //results of a currency click
   H_Attack_Click: 'h_attackClick', //process an attack click
   H_Attack_Update: 'h_attackUpdate', //results of an attack click
+  H_Attack_Create: 'h_attackCreate',
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
@@ -405,6 +409,19 @@ if (typeof module !== 'undefined') module.exports = Messages;
 "use strict";
 
 /* ++++++ socket setup Functions ++++++ */
+
+var onAds = function onAds(sock) {
+  var socket = sock;
+
+  socket.on(Messages.C_Get_Ads, function (data) {
+    //get ad1 and ad2 elements
+    var ad1 = document.querySelector("#ad1");
+    var ad2 = document.querySelector("#ad2");
+
+    //ad1.src = data.ad1;
+    //ad2.src = data.ad2;
+  });
+};
 
 var onLobby = function onLobby(sock) {
   var socket = sock;
@@ -451,9 +468,13 @@ var onGameUpdate = function onGameUpdate(sock) {
   //results of an attack click
   socket.on(Messages.C_Attack_Update, function (data) {
     // update each attack
-    // console.log(data);
-    if (!attacks.hasOwnProperty(data.hash)) users[data.originHash].population -= 10;
+    // console.log(data);     
+    attacks[data.hash].destX = data.destX;
+    attacks[data.hash].destY = data.destY;
+  });
 
+  socket.on(Messages.C_Attack_Create, function (data) {
+    users[data.originHash].population -= 10;
     attacks[data.hash] = data;
   });
 
@@ -471,6 +492,7 @@ var onGameUpdate = function onGameUpdate(sock) {
 
 var setupSocket = function setupSocket(sock) {
 
+  onAds(socket);
   onLobby(socket);
   onRoomUpdate(socket);
   onGameUpdate(socket);

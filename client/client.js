@@ -88,6 +88,10 @@ const init = () => {
   canvas.onmousedown = doMouseDown;
   canvas.onmouseup = doMouseUp;
     
+  //position ad2 at bottom of the screen
+  var adPosition = window.innerHeight - 140;
+  document.querySelector("#ad2").style.top = adPosition + "px";
+    
   socket = io.connect();
     
   setupSocket(socket);

@@ -38,6 +38,23 @@ const defaultSocket = (sock) => {
   socket.roomString = undefined;
 };
 
+//called on join to send 2 ads to the socket to display
+const sendAds = (sock) => {
+    const socket = sock;
+    
+    let ads = {};
+    
+    //determine ad 1
+    let randNum = Math.floor(Math.random() * 5) + 1; //1 to 5
+    ads.ad1 = "placeholder"+randNum+".jpg";
+    
+    //determine ad 2
+    randNum = Math.floor(Math.random() * 5) + 6; //6 to 10
+    ads.ad2 = "placeholder"+randNum+".png";
+    
+    socket.emit(Messages.C_Get_Ads, ads);
+};
+
 // Called when the socket FIRST joins the lobby, only first time
 const enterLobby = (sock) => {
   const socket = sock;
@@ -251,6 +268,7 @@ const setupSockets = (ioServer) => {
     socket.hash = hash;
 
     defaultSocket(socket);
+    sendAds(socket);
 
     onJoinRoom(socket);
     onDisconnect(socket);

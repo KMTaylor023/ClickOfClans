@@ -12,6 +12,7 @@ const Messages = Object.freeze({
   C_Attack_Hit: 'c_attackHit',      //the host said an attack hit
   C_Room_Update: 'c_roomUpdate',    //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer',  //a player left the server
+  C_Get_Ads: 'c_ads',             //dispaly some ads
   //Host messages
   H_Player_Joined: 'h_addPlayer',   //a new player joined the server
   H_Player_Left: 'h_removePlayer',  //a player left the server
