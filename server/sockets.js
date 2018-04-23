@@ -1,6 +1,4 @@
 const xxh = require('xxhashjs');
-// custom class for the player
-const Player = require('./classes/Player.js');
 const Room = require('./classes/Room.js');
 const Attack = require('./classes/Attack.js');
 
@@ -38,21 +36,21 @@ const defaultSocket = (sock) => {
   socket.roomString = undefined;
 };
 
-//called on join to send 2 ads to the socket to display
+// called on join to send 2 ads to the socket to display
 const sendAds = (sock) => {
-    const socket = sock;
-    
-    let ads = {};
-    
-    //determine ad 1
-    let randNum = Math.floor(Math.random() * 5) + 1; //1 to 5
-    ads.ad1 = "placeholder"+randNum+".jpg";
-    
-    //determine ad 2
-    randNum = Math.floor(Math.random() * 5) + 6; //6 to 10
-    ads.ad2 = "placeholder"+randNum+".png";
-    
-    socket.emit(Messages.C_Get_Ads, ads);
+  const socket = sock;
+
+  const ads = {};
+
+  // determine ad 1
+  let randNum = Math.floor(Math.random() * 5) + 1; // 1 to 5
+  ads.ad1 = `placeholder${randNum}.jpg`;
+
+  // determine ad 2
+  randNum = Math.floor(Math.random() * 5) + 6; // 6 to 10
+  ads.ad2 = `placeholder${randNum}.png`;
+
+  socket.emit(Messages.C_Get_Ads, ads);
 };
 
 // Called when the socket FIRST joins the lobby, only first time
@@ -120,6 +118,21 @@ const hostRoomUpdate = (sock) => {
   });
 };
 
+
+// helper function to set a players playernum
+const setPlayerNum = (rm, sock) => {
+  const socket = sock;
+  const room = rm;
+
+  for (let i = 0; i < room.openSpaces.length; i++) {
+    if (!room.openSpaces[i]) {
+      room.openSpaces[i] = socket.hash;
+      socket.playerNum = i;
+      return;
+    }
+  }
+};
+
 // adds player to given room
 const joinRoom = (sock, roomName) => {
   const socket = sock;
@@ -143,9 +156,7 @@ const joinRoom = (sock, roomName) => {
   socket.join(roomName);
   socket.roomString = roomName;
 
-
-  const player = new Player(socket.hash, socket.playerName);
-  player.playerNum = room.players.length;
+  setPlayerNum(room, socket);
   // what to do if there is or isn't a host
   if (room.players.length === 0) {
     room.hostSocketHash = socket.hash;
@@ -165,6 +176,7 @@ const joinRoom = (sock, roomName) => {
   } else {
     socket.hostSocket = hosts[room.hostSocketHash];
   }
+  const player = { hash: socket.hash, name: socket.playerName, playerNum: socket.playerNum };
   socket.hostSocket.emit(Messages.H_Player_Joined, player);
 
 
@@ -190,6 +202,9 @@ const leaveRoom = (sock) => {
     room.players.splice(room.players.indexOf(socket.hash));
     room.full = false;
 
+    room.openSpaces[socket.playerNum] = undefined;
+
+    delete socket.playerNum;
 
     if (socket.host) {
       delete hosts[socket.hash];
@@ -295,7 +310,7 @@ const setupSockets = (ioServer) => {
         data.targetHash,
         data.x,
         data.y,
-        data.color
+        data.color,
       );
 
       // send the target data to the host

@@ -1,7 +1,8 @@
 //This is the clients socket
 var socket = {};
 
-let users = {};     //the users in the lobby the client is in
+let players = {};     //the players in the lobby the client is in
+let users = {}; //a barebones representation of the users
 let attacks = {};   //any attacks being sent
 let canvas;         //the canvas the game is on
 let ctx;           //the canvas context
@@ -38,17 +39,17 @@ const doMouseDown = (e) => {
     //make sure the player isnt clicking already
     if (!mouseClicked){
         //get the keys
-        const keys = Object.keys(users);
+        const keys = Object.keys(players);
         
-        var myX =  positions[users[myHash].playerNum].x;
-        var myY =  positions[users[myHash].playerNum].y;
+        var myX =  players[myHash].x + playerHalfWidth;
+        var myY =  players[myHash].y + playerHalfHeight;
 
         //check if the click was on any of the players
         for (var i = 0; i < keys.length; i++){
-            var player = users[keys[i]];
+            var player = players[keys[i]];
             
-            var posX = positions[player.playerNum].x - (player.width/2);
-            var posY = positions[player.playerNum].y - (player.height/2);
+            var posX = player.x;
+            var posY = player.y;
             
             //if the click was in the square, send it to the server for points;
             if (mouse.x >= posX && mouse.x <= posX + player.width){
@@ -62,7 +63,7 @@ const doMouseDown = (e) => {
                         //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, 
                         {originHash: myHash, targetHash: player.hash, x: myX, 
-                         y: myY, color: users[myHash].color});
+                         y: myY, color: players[myHash].color});
                     }
                 }
             }

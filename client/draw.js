@@ -2,13 +2,6 @@ const lerp = (v0, v1, alpha) => {
   return (1 - alpha) * v0 + alpha * v1;
 };
 
-const positions = [ 
-    { x: 100, y: 100} , 
-    { x: 600, y: 400} , 
-    { x: 100, y: 400} , 
-    { x: 600, y: 100}]; 
-const colors = ["red","blue","yellow","green"];
-
 
 //redraw with requestAnimationFrame
 const redraw = () => { 
@@ -18,26 +11,31 @@ const redraw = () => {
   ctx.fillRect(0,0,700,500);
   
   //draw players
-  const keys = Object.keys(users); 
+  const keys = Object.keys(players); 
   for(let i = 0; i < keys.length; i++) {
-    const player = users[keys[i]];
+    const player = players[keys[i]];
     
-    let halfWidth = player.width/2;
-    let halfHeight = player.height/2;
-    let posX = positions[player.playerNum].x - halfWidth;
-    let posY = positions[player.playerNum].y - halfHeight;
+    let halfWidth = playerHalfWidth;
+    let halfHeight = playerHalfHeight;
       
     //draw outer box
-    ctx.fillStyle = colors[player.playerNum]; 
-    ctx.fillRect(posX,posY,player.width, player.height);
+    ctx.fillStyle = player.color; 
+    ctx.fillRect(player.x,player.y,player.width, player.height);
     
     // draw inner box
     ctx.fillStyle = "white";
-    ctx.fillRect(posX+5,posY+5,player.width-10, player.height-10);
+    ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
  
     // draw their population count
     ctx.fillStyle = "black";
-    ctx.fillText(player.population, posX + halfWidth, posY + halfHeight,100);  
+    ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  
+    
+    for(let j = 0; j < 3; j++){
+      const str = player.structures[j];
+      
+      ctx.fillStyle = str.color;
+      ctx.fillRect(str.x, str.y, str.width, str.height);
+    }
   }
    
 //get attacks

@@ -3,6 +3,7 @@ class Room {
     this.roomName = name;
     this.full = false;
     this.players = [];
+    this.openSpaces = [undefined, undefined, undefined, undefined];
     this.hostSocketHash = undefined;
     Object.seal(this);
   }

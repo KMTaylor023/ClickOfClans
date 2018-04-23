@@ -21,12 +21,23 @@ const onLobby = (sock) => {
   });
 };
 
+const setPlayers = () => {
+  const keys = Object.keys(users);
+  
+  for(let i = 0; i < keys.length; i++){
+    if(players[keys[i]]) continue;
+    const user = users[keys[i]];
+    players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+  }
+}
+
 //get the player data from the host
 const onRoomUpdate = (sock) => {
   const socket = sock;
   
   socket.on(Messages.C_Room_Update, (data) => {
     users = data; 
+    setPlayers();
   });
     
   socket.on(Messages.H_Become_Host, () =>
@@ -48,12 +59,13 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Currency_Result, (data) => {
       //ignore old messages 
       
-      if (users[data.hash].lastUpdate >= data.lastUpdate){ 
+      if (players[data.hash].lastUpdate >= data.lastUpdate){ 
           return;
       }
       
       //update the data
       users[data.hash] = data;  
+      players[data.hash].population = data.population;
   });
     
   //results of an attack click
@@ -65,7 +77,7 @@ const onGameUpdate = (sock) => {
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
-     users[data.originHash].population -= 10;
+     players[data.originHash].population -= 10;
      attacks[data.hash] = data; 
   });
     
@@ -74,7 +86,7 @@ const onGameUpdate = (sock) => {
       //remove the attack that hit from attacks somehow
       //do attack hitting effects
       let at = attacks[data.hash];
-      users[at.targetHash].population -= 50;
+      players[at.targetHash].population -= 50;
       delete attacks[data.hash]; 
   });
 };

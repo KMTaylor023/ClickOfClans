@@ -3,7 +3,8 @@
 //This is the clients socket
 var socket = {};
 
-var users = {}; //the users in the lobby the client is in
+var players = {}; //the players in the lobby the client is in
+var users = {}; //a barebones representation of the users
 var attacks = {}; //any attacks being sent
 var canvas = void 0; //the canvas the game is on
 var ctx = void 0; //the canvas context
@@ -39,17 +40,17 @@ var doMouseDown = function doMouseDown(e) {
     //make sure the player isnt clicking already
     if (!mouseClicked) {
         //get the keys
-        var keys = Object.keys(users);
+        var keys = Object.keys(players);
 
-        var myX = positions[users[myHash].playerNum].x;
-        var myY = positions[users[myHash].playerNum].y;
+        var myX = players[myHash].x + playerHalfWidth;
+        var myY = players[myHash].y + playerHalfHeight;
 
         //check if the click was on any of the players
         for (var i = 0; i < keys.length; i++) {
-            var player = users[keys[i]];
+            var player = players[keys[i]];
 
-            var posX = positions[player.playerNum].x - player.width / 2;
-            var posY = positions[player.playerNum].y - player.height / 2;
+            var posX = player.x;
+            var posY = player.y;
 
             //if the click was in the square, send it to the server for points;
             if (mouse.x >= posX && mouse.x <= posX + player.width) {
@@ -61,7 +62,7 @@ var doMouseDown = function doMouseDown(e) {
                     } else {
                         //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
-                            y: myY, color: users[myHash].color });
+                            y: myY, color: players[myHash].color });
                     }
                 }
             }
@@ -101,9 +102,6 @@ var lerp = function lerp(v0, v1, alpha) {
   return (1 - alpha) * v0 + alpha * v1;
 };
 
-var positions = [{ x: 100, y: 100 }, { x: 600, y: 400 }, { x: 100, y: 400 }, { x: 600, y: 100 }];
-var colors = ["red", "blue", "yellow", "green"];
-
 //redraw with requestAnimationFrame
 var redraw = function redraw() {
   //clear screen
@@ -112,26 +110,31 @@ var redraw = function redraw() {
   ctx.fillRect(0, 0, 700, 500);
 
   //draw players
-  var keys = Object.keys(users);
+  var keys = Object.keys(players);
   for (var i = 0; i < keys.length; i++) {
-    var player = users[keys[i]];
+    var player = players[keys[i]];
 
-    var halfWidth = player.width / 2;
-    var halfHeight = player.height / 2;
-    var posX = positions[player.playerNum].x - halfWidth;
-    var posY = positions[player.playerNum].y - halfHeight;
+    var halfWidth = playerHalfWidth;
+    var halfHeight = playerHalfHeight;
 
     //draw outer box
-    ctx.fillStyle = colors[player.playerNum];
-    ctx.fillRect(posX, posY, player.width, player.height);
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
 
     // draw inner box
     ctx.fillStyle = "white";
-    ctx.fillRect(posX + 5, posY + 5, player.width - 10, player.height - 10);
+    ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
 
     // draw their population count
     ctx.fillStyle = "black";
-    ctx.fillText(player.population, posX + halfWidth, posY + halfHeight, 100);
+    ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+
+    for (var j = 0; j < 3; j++) {
+      var str = player.structures[j];
+
+      ctx.fillStyle = str.color;
+      ctx.fillRect(str.x, str.y, str.width, str.height);
+    }
   }
 
   //get attacks
@@ -171,12 +174,12 @@ var updateAttack = function updateAttack(hash) {
     // This calculation shouldn't actually have to happen
     // Do this calculation on Attack initialization
     var at = attacks[hash];
-    var originPlayer = users[at.originHash];
-    var oX = positions[originPlayer.playerNum].x;
-    var oY = positions[originPlayer.playerNum].y;
-    var destPlayer = users[at.targetHash];
-    var destX = positions[destPlayer.playerNum].x;
-    var destY = positions[destPlayer.playerNum].y;
+    var originPlayer = players[at.originHash];
+    var oX = originPlayer.x + playerHalfWidth;
+    var oY = originPlayer.y + playerHalfHeight;
+    var destPlayer = players[at.targetHash];
+    var destX = destPlayer.x + playerHalfWidth;
+    var destY = destPlayer.y + playerHalfHeight;
 
     var moveX = (destX - oX) / 100;
     var moveY = (destY - oY) / 100;
@@ -201,7 +204,11 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Player_Joined, function (data) {
         // Add a new user 
+        var player = new Player(data.hash, data.name, data.playerNum);
+        data.lastUpdate = player.lastUpdate;
+        data.population = player.population;
         users[data.hash] = data;
+        players[data.hash] = player;
         socket.emit(Messages.H_Room_Update, users);
     });
 
@@ -407,103 +414,24 @@ var Messages = Object.freeze({
 if (typeof module !== 'undefined') module.exports = Messages;
 "use strict";
 
-/* ++++++ socket setup Functions ++++++ */
-
-var onAds = function onAds(sock) {
-  var socket = sock;
-
-  socket.on(Messages.C_Get_Ads, function (data) {
-    //get ad1 and ad2 elements
-    var ad1 = document.querySelector("#ad1");
-    var ad2 = document.querySelector("#ad2");
-
-    ad1.src = "./assets/" + data.ad1;
-    ad2.src = "./assets/" + data.ad2;
-  });
-};
-
-var onLobby = function onLobby(sock) {
-  var socket = sock;
-
-  socket.on(Messages.C_Update_Lobby, function (data) {
-    manageLobby(data);
-  });
-};
-
-//get the player data from the host
-var onRoomUpdate = function onRoomUpdate(sock) {
-  var socket = sock;
-
-  socket.on(Messages.C_Room_Update, function (data) {
-    users = data;
-  });
-
-  socket.on(Messages.H_Become_Host, function () {
-    onHosted();
-  });
-
-  socket.on(Messages.S_SetUser, function (hash, host) {
-    myHash = hash;
-    myHost = host;
-  });
-};
-
-//get the game updates from the host
-var onGameUpdate = function onGameUpdate(sock) {
-  var socket = sock;
-
-  //results of a currency click
-  socket.on(Messages.C_Currency_Result, function (data) {
-    //ignore old messages 
-
-    if (users[data.hash].lastUpdate >= data.lastUpdate) {
-      return;
-    }
-
-    //update the data
-    users[data.hash] = data;
-  });
-
-  //results of an attack click
-  socket.on(Messages.C_Attack_Update, function (data) {
-    // update each attack
-    // console.log(data);     
-    attacks[data.hash].destX = data.destX;
-    attacks[data.hash].destY = data.destY;
-  });
-
-  socket.on(Messages.C_Attack_Create, function (data) {
-    users[data.originHash].population -= 10;
-    attacks[data.hash] = data;
-  });
-
-  //an attack hit
-  socket.on(Messages.C_Attack_Hit, function (data) {
-    //remove the attack that hit from attacks somehow
-    //do attack hitting effects
-    var at = attacks[data.hash];
-    users[at.targetHash].population -= 50;
-    delete attacks[data.hash];
-  });
-};
-
-/* ------ socket setup Functions ------ */
-
-var setupSocket = function setupSocket(sock) {
-
-  onAds(socket);
-  onLobby(socket);
-  onRoomUpdate(socket);
-  onGameUpdate(socket);
-};
-'use strict';
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var positions = [{ x: 50, y: 50 }, { x: 550, y: 350 }, { x: 50, y: 350 }, { x: 550, y: 50 }];
+
+var structure_positions = [[{ x: 160, y: 75 }, { x: 160, y: 160 }, { x: 75, y: 160 }], [{ x: 490, y: 375 }, { x: 490, y: 290 }, { x: 575, y: 290 }], [{ x: 160, y: 375 }, { x: 160, y: 290 }, { x: 75, y: 290 }], [{ x: 490, y: 75 }, { x: 490, y: 160 }, { x: 575, y: 160 }]];
+var colors = ["red", "blue", "yellow", "green"];
+var playerWidth = 100;
+var playerHeight = 100;
+var playerHalfWidth = playerWidth / 2;
+var playerHalfHeight = playerHeight / 2;
 
 var STRUCTURE_TYPES = {
   FARM: 'farm',
   BSMITH: 'blacksmith',
-  SHIELD: 'shield'
+  SHIELD: 'shield',
+  PLACEHOLDER: 'placeholder'
 };
 
 var INFO = {};
@@ -535,37 +463,197 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
   defmult: 2
 };
 
-//deals damage to structure
-var takeDamage = function takeDamage(dmg, isBonus) {
-  undefined.health -= dmg / undefined.defmult;
-  if (undefined.health < 0) {
-    undefined.health = 0;
-    undefined.destroyed = true;
-  }
+//the stats for the shield
+INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
+  health: 0,
+  color: 'rgb(70,70,70)',
+  popgen: 0,
+  atkmult: 1,
+  defmult: 1
 };
 
 // Structure class
 
-var Structure = function Structure(x, y, type) {
-  _classCallCheck(this, Structure);
+var Structure = function () {
+  function Structure(x, y, type) {
+    _classCallCheck(this, Structure);
 
-  this.x = x;
-  this.y = y;
-  this.type = type;
+    this.x = x;
+    this.y = y;
 
-  var inf = INFO[type];
+    this.width = 50;
+    this.height = 50;
 
-  this.color = inf.color;
-  this.health = inf.health;
-  this.popgen = inf.popgen;
-  this.atkmult = inf.atkmult;
-  this.defmult = inf.defmult;
-  this.destroyed = false;
+    this.setup(type);
+  }
 
-  this.takeDamage = takeDamage.bind(this);
-};
+  _createClass(Structure, [{
+    key: "setup",
+    value: function setup(type) {
+      this.type = type;
+
+      var inf = INFO[type];
+
+      this.color = inf.color;
+      this.health = inf.health;
+      this.popgen = inf.popgen;
+      this.atkmult = inf.atkmult;
+      this.defmult = inf.defmult;
+      this.destroyed = false;
+    }
+  }, {
+    key: "reset",
+    value: function reset() {
+      setup(STRUCTURE_TYPES.PLACEHOLDER);
+    }
+
+    //deals damage to structure
+
+  }, {
+    key: "takeDamage",
+    value: function takeDamage(dmg, isBonus) {
+      this.health -= dmg / this.defmult;
+      if (this.health < 0) {
+        this.health = 0;
+        this.destroyed = true;
+      }
+    }
+  }]);
+
+  return Structure;
+}();
 
 ;
 
-//module.exports.newStructure = Structure;
-//module.exports.type = STRUCTURE_TYPES;
+// Character class
+
+var Player = function Player(hash, name, playerNum) {
+  _classCallCheck(this, Player);
+
+  this.hash = hash;
+  this.name = name;
+  this.population = 0;
+  this.lastUpdate = new Date().getTime();
+  // not sure if we are doing hardset x/ys on host side,
+  // setting x and y after object exists, or if we want to pass the x and y values in
+  // via constructor
+  this.x = positions[playerNum].x; // x location on screen
+  this.y = positions[playerNum].y; // y location on screen
+  this.playerNum = playerNum;
+  this.width = playerWidth;
+  this.height = playerHeight;
+  //this.color = `rgb(${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)},${Math.floor((Math.random() * 255) + 1)})`;
+  this.color = colors[playerNum];
+  // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
+  // position 3 = vertical lane
+  this.structures = [];
+
+  var strPos = structure_positions[playerNum];
+
+  for (var i = 0; i < 3; i++) {
+    this.structures[i] = new Structure(strPos[i].x, strPos[i].y, STRUCTURE_TYPES.PLACEHOLDER);
+  }
+};
+"use strict";
+
+/* ++++++ socket setup Functions ++++++ */
+
+var onAds = function onAds(sock) {
+  var socket = sock;
+
+  socket.on(Messages.C_Get_Ads, function (data) {
+    //get ad1 and ad2 elements
+    var ad1 = document.querySelector("#ad1");
+    var ad2 = document.querySelector("#ad2");
+
+    ad1.src = "./assets/" + data.ad1;
+    ad2.src = "./assets/" + data.ad2;
+  });
+};
+
+var onLobby = function onLobby(sock) {
+  var socket = sock;
+
+  socket.on(Messages.C_Update_Lobby, function (data) {
+    manageLobby(data);
+  });
+};
+
+var setPlayers = function setPlayers() {
+  var keys = Object.keys(users);
+
+  for (var i = 0; i < keys.length; i++) {
+    if (players[keys[i]]) continue;
+    var user = users[keys[i]];
+    players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+  }
+};
+
+//get the player data from the host
+var onRoomUpdate = function onRoomUpdate(sock) {
+  var socket = sock;
+
+  socket.on(Messages.C_Room_Update, function (data) {
+    users = data;
+    setPlayers();
+  });
+
+  socket.on(Messages.H_Become_Host, function () {
+    onHosted();
+  });
+
+  socket.on(Messages.S_SetUser, function (hash, host) {
+    myHash = hash;
+    myHost = host;
+  });
+};
+
+//get the game updates from the host
+var onGameUpdate = function onGameUpdate(sock) {
+  var socket = sock;
+
+  //results of a currency click
+  socket.on(Messages.C_Currency_Result, function (data) {
+    //ignore old messages 
+
+    if (players[data.hash].lastUpdate >= data.lastUpdate) {
+      return;
+    }
+
+    //update the data
+    users[data.hash] = data;
+    players[data.hash].population = data.population;
+  });
+
+  //results of an attack click
+  socket.on(Messages.C_Attack_Update, function (data) {
+    // update each attack
+    // console.log(data);     
+    attacks[data.hash].destX = data.destX;
+    attacks[data.hash].destY = data.destY;
+  });
+
+  socket.on(Messages.C_Attack_Create, function (data) {
+    players[data.originHash].population -= 10;
+    attacks[data.hash] = data;
+  });
+
+  //an attack hit
+  socket.on(Messages.C_Attack_Hit, function (data) {
+    //remove the attack that hit from attacks somehow
+    //do attack hitting effects
+    var at = attacks[data.hash];
+    players[at.targetHash].population -= 50;
+    delete attacks[data.hash];
+  });
+};
+
+/* ------ socket setup Functions ------ */
+
+var setupSocket = function setupSocket(sock) {
+
+  onAds(socket);
+  onLobby(socket);
+  onRoomUpdate(socket);
+  onGameUpdate(socket);
+};

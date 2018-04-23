@@ -6,12 +6,12 @@ const updateAttack = (hash) =>{
     // This calculation shouldn't actually have to happen
     // Do this calculation on Attack initialization
     var at = attacks[hash];  
-    var originPlayer = users[at.originHash];
-    var oX = positions[originPlayer.playerNum].x;
-    var oY = positions[originPlayer.playerNum].y;
-    var destPlayer = users[at.targetHash];
-    var destX = positions[destPlayer.playerNum].x;
-    var destY = positions[destPlayer.playerNum].y;
+    var originPlayer = players[at.originHash];
+    var oX = originPlayer.x + playerHalfWidth;
+    var oY = originPlayer.y + playerHalfHeight;
+    var destPlayer = players[at.targetHash];
+    var destX = destPlayer.x + playerHalfWidth;
+    var destY = destPlayer.y + playerHalfHeight;
      
     var moveX = (destX - oX) / 100;
     var moveY = (destY - oY) / 100;   
@@ -39,7 +39,11 @@ const onHosted = () => {
      
     socket.on(Messages.H_Player_Joined, (data) => { 
         // Add a new user 
+        const player = new Player(data.hash, data.name, data.playerNum);
+        data.lastUpdate = player.lastUpdate;
+        data.population = player.population;
         users[data.hash] = data; 
+        players[data.hash] = player;
         socket.emit(Messages.H_Room_Update,users);
     });
     
