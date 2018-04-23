@@ -78,6 +78,7 @@ const onGameUpdate = (sock) => {
     
   socket.on(Messages.C_Attack_Create, (data) => {
      players[data.originHash].population -= 10;
+     users[data.originHash].population -= 10;
      attacks[data.hash] = data; 
   });
     
@@ -87,6 +88,7 @@ const onGameUpdate = (sock) => {
       //do attack hitting effects
       let at = attacks[data.hash];
       players[at.targetHash].population -= 50;
+      users[at.targetHash].population -= 50;
       delete attacks[data.hash]; 
   });
 };
