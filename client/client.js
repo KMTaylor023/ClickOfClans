@@ -10,7 +10,10 @@ let myHash;
 let myHost;
 let mouseClicked = false;   //is the mouse currently clicked?
 let animationFrame; // current animatino frame
-
+let buyButton;      //click to buy a skin
+let equipButton;    //click to equip a skin
+let skinButton;     //click to go to skin select
+let lobbyButton;    //click to go to the lobby
 
 
 const client_showGame = () => {
@@ -80,6 +83,16 @@ const doMouseUp = () => {
     mouseClicked = false;
 };
 
+//send a message to the server to purchase the chosen skin
+const purchaseSkin = (e) => {
+    
+};
+
+//send a message to the server to verify the selected skin is owned and then equip it
+const equipSkin = (e) => {
+    
+};
+
 const init = () => {
   initializeLobby();//initialize lobby elements
   
@@ -88,6 +101,28 @@ const init = () => {
   ctx = canvas.getContext("2d");
   canvas.onmousedown = doMouseDown;
   canvas.onmouseup = doMouseUp;
+    
+  //get buttons
+  lobbyButton = document.querySelector("#lobbyButton");
+  skinButton = document.querySelector("#chooseSkinButton");
+  buyButton = document.querySelector("#buyButton");
+  equipButton = document.querySelector("#equipButton");
+    
+  //set event listeners
+  lobbyButton.onclick = (e) => {
+      document.querySelector("#lobby").style.display = "block";
+      document.querySelector("#skins").style.display = "none";
+  };
+  skinButton.onclick = (e) => {
+      document.querySelector("#lobby").style.display = "none";
+      document.querySelector("#skins").style.display = "block";
+  };
+  buyButton.onclick = (e) => {
+      purchaseSkin(e);
+  };
+  equipButton.onclick = (e) => {
+      equipSkin(e);
+  };
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;
