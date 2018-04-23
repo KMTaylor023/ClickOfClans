@@ -6,10 +6,31 @@
     <script src="/assets/bundle.js"></script>
   </head>
      <section id="lobby">
-      <input type="text" id="room_name_input" placeholder="Enter Room Name...">
-      <button type="button" id="create_room_button">Create Room</button>
-      <ul id="lobby_list">
-      </ul>
+      <section id="roomSelection">
+          <input type="text" id="room_name_input" placeholder="Enter Room Name...">
+          <button type="button" id="create_room_button">Create Room</button>
+          <button type="button" id="chooseSkinButton">Skins</button>
+          <ul id="lobby_list">
+          </ul>
+      </section>
+      <section id = "skins">
+          <form class = "grid">
+              <section class = "skinDisplay" id="skin1">
+                  <p><img height="64" width="64" src=""/></p>
+                  <input type="radio" name="skin" value="skin1">
+              </section>
+              <section class = "skinDisplay" id="skin2">
+                  <p><img height="64" width="64" src=""/></p>
+                  <input type="radio" name="skin" value="skin2">
+              </section>
+              <section class = "skinDisplay" id="skin3">
+                  <p><img height="64" width="64" src=""/></p>
+                  <input type="radio" name="skin" value="skin3">
+              </section>
+              <button type="button" id="buyButton">Buy</button>
+              <button type="button" id="equipButton">Equip</button>
+          </form>
+      </section>
     </section>
     <section id="game">
         <canvas id="canvas" height="500" width="700" style="border: 1px solid black;">Please use an HTML 5 browser</canvas>

@@ -8,8 +8,21 @@
   border: 1px solid black; 
 }
 
-.ad {
-    
+#skins {
+    display: none;
+}
+
+.grid{
+    display: flex;
+    flex-wrap: wrap;
+}
+.skinDisplay{
+    flex: 1;
+    text-align: center;
+}
+
+.owned{
+    background-color: rgb(128,128,128);
 }
 
 #ad1{
