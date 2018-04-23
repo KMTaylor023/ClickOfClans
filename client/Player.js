@@ -31,6 +31,9 @@ INFO[STRUCTURE_TYPES.FARM] = {
   popgen: 2,
   atkmult: 1,
   defmult: 1,
+  onclick: () => {
+    
+  },
 };
 
 //the stats for the blacksmith
@@ -40,6 +43,9 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
   popgen: 0,
   atkmult: 2,
   defmult: 1,
+  onclick: () => {
+    
+  },
 };
 
 //the stats for the shield
@@ -49,6 +55,9 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
   popgen: 0,
   atkmult: 1,
   defmult: 2,
+  onclick: () => {
+    
+  },
 };
 
 //the stats for the shield
@@ -58,6 +67,9 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   popgen: 0,
   atkmult: 1,
   defmult: 1,
+  onclick: () => {
+    
+  },
 };
 
 
