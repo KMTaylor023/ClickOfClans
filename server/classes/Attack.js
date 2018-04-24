@@ -18,8 +18,8 @@ class Attack {
     this.destY = originY;
     this.x = originX;
     this.y = originY;
-    // this.moveX = moveX;
-    // this.moveY = moveY;
+    this.moveX = 0;
+    this.moveY = 0;
   }
 }
 
