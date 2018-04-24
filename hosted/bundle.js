@@ -1,3 +1,260 @@
+"use strict";
+
+//This is the clients socket
+var socket = {};
+
+var players = {}; //the players in the lobby the client is in
+var users = {}; //a barebones representation of the users
+var attacks = {}; //any attacks being sent
+var canvas = void 0; //the canvas the game is on
+var ctx = void 0; //the canvas context
+var myHash = void 0;
+var myHost = void 0;
+var mouseClicked = false; //is the mouse currently clicked?
+var animationFrame = void 0; // current animatino frame
+var buyButton = void 0; //click to buy a skin
+var equipButton = void 0; //click to equip a skin
+var skinButton = void 0; //click to go to skin select
+var lobbyButton = void 0; //click to go to the lobby
+
+
+var client_showGame = function client_showGame() {
+    document.querySelector("#game").style.display = "block";
+    document.querySelector("#lobby").style.display = "none";
+
+    animationFrame = requestAnimationFrame(update);
+};
+
+// Function Name: getMouse()
+// returns mouse position in local coordinate system of element
+// Author: Tony Jefferson
+// Last update: 3/1/2014
+var getMouse = function getMouse(e) {
+    var mouse = {};
+    mouse.x = e.pageX - e.target.offsetLeft;
+    mouse.y = e.pageY - e.target.offsetTop;
+    return mouse;
+};
+
+//on click, check if a player was clicked
+var doMouseDown = function doMouseDown(e) {
+    //get location of mouse
+    var mouse = getMouse(e);
+
+    //make sure the player isnt clicking already
+    if (!mouseClicked) {
+        //get the keys
+        var keys = Object.keys(players);
+
+        var myX = players[myHash].x + playerHalfWidth;
+        var myY = players[myHash].y + playerHalfHeight;
+
+        //check if the click was on any of the players
+        for (var i = 0; i < keys.length; i++) {
+            var player = players[keys[i]];
+
+            var posX = player.x;
+            var posY = player.y;
+
+            //if the click was in the square, send it to the server for points;
+            if (mouse.x >= posX && mouse.x <= posX + player.width) {
+                if (mouse.y >= posY && mouse.y <= posY + player.height) {
+                    //check if player is you  
+                    if (myHash === player.hash) {
+                        //send a currency click event 
+                        socket.emit(Messages.C_Currency_Click);
+                    } else {
+                        //send an attack click event 
+                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
+                            y: myY, color: players[myHash].color });
+                    }
+                }
+            }
+        }
+    }
+
+    //disable additional clicks
+    mouseClicked = true;
+};
+
+//allow player to click again once they lift their mouse
+var doMouseUp = function doMouseUp() {
+    mouseClicked = false;
+};
+
+//send a message to the server to purchase the chosen skin
+var purchaseSkin = function purchaseSkin(e) {};
+
+//send a message to the server to verify the selected skin is owned and then equip it
+var equipSkin = function equipSkin(e) {};
+
+var init = function init() {
+    initializeLobby(); //initialize lobby elements
+
+    // set up canvas stuff
+    canvas = document.querySelector('canvas');
+    ctx = canvas.getContext("2d");
+    canvas.onmousedown = doMouseDown;
+    canvas.onmouseup = doMouseUp;
+
+    //get buttons
+    lobbyButton = document.querySelector("#lobbyButton");
+    skinButton = document.querySelector("#chooseSkinButton");
+    buyButton = document.querySelector("#buyButton");
+    equipButton = document.querySelector("#equipButton");
+
+    //set event listeners
+    lobbyButton.onclick = function (e) {
+        document.querySelector("#lobby").style.display = "block";
+        document.querySelector("#skins").style.display = "none";
+    };
+    skinButton.onclick = function (e) {
+        document.querySelector("#lobby").style.display = "none";
+        document.querySelector("#skins").style.display = "block";
+    };
+    buyButton.onclick = function (e) {
+        purchaseSkin(e);
+    };
+    equipButton.onclick = function (e) {
+        equipSkin(e);
+    };
+
+    //position ad2 at bottom of the screen
+    var adPosition = window.innerHeight - 140;
+    document.querySelector("#ad2").style.top = adPosition + "px";
+
+    socket = io.connect();
+    setupSocket(socket);
+};
+
+window.onload = init;
+"use strict";
+
+var lerp = function lerp(v0, v1, alpha) {
+  return (1 - alpha) * v0 + alpha * v1;
+};
+
+//redraw with requestAnimationFrame
+var redraw = function redraw() {
+  //clear screen
+  ctx.clearRect(0, 0, 700, 500);
+  ctx.fillStyle = "grey";
+  ctx.fillRect(0, 0, 700, 500);
+
+  //draw players
+  var keys = Object.keys(players);
+  for (var i = 0; i < keys.length; i++) {
+    var player = players[keys[i]];
+
+    var halfWidth = playerHalfWidth;
+    var halfHeight = playerHalfHeight;
+
+    //draw outer box
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // draw inner box
+    ctx.fillStyle = "white";
+    ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
+
+    // draw their population count
+    ctx.fillStyle = "black";
+    ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+
+    for (var j = 0; j < 3; j++) {
+      var str = player.structures[j];
+
+      ctx.fillStyle = str.color;
+      ctx.fillRect(str.x, str.y, str.width, str.height);
+    }
+  }
+
+  //get attacks
+  var attackKeys = Object.keys(attacks);
+
+  //if an amount of keys, draw the attacks
+  if (attackKeys.length > 0) {
+    //draw attacks
+    for (var _i = 0; _i < attackKeys.length; _i++) {
+      var attack = attacks[attackKeys[_i]];
+
+      if (attack.alpha < 1) attack.alpha += 0.05;
+
+      //lerp
+      attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+      attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+
+      //draw
+      ctx.fillStyle = attack.color;
+      ctx.fillRect(attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
+    }
+  }
+};
+
+var update = function update(time) {
+  redraw();
+
+  animationFrame = requestAnimationFrame(update);
+};
+"use strict";
+
+var updateAttack = function updateAttack() {
+    var returnMe = {};
+
+    var arOfHashes = Object.keys(attacks);
+    for (var i = 0; i < arOfHashes.length; i++) {
+        var at = attacks[arOfHashes[i]];
+        var newX = at.destX + at.moveX;
+        var newY = at.destY + at.moveY;
+        var newTick = at.updateTick + 1;
+
+        if (newTick > 100) socket.emit(Messages.H_Attack_Hit, attacks[arOfHashes[i]]);else returnMe[i] = { hash: arOfHashes[i], x: newX, y: newY, tick: newTick };
+    }
+
+    socket.emit(Messages.H_Attack_Update, returnMe);
+};
+
+var onHosted = function onHosted() {
+    document.querySelector("#debug").style.display = "block";
+    setInterval(updateAttack, 100);
+
+    socket.on(Messages.H_Player_Joined, function (data) {
+        // Add a new user 
+        var player = new Player(data.hash, data.name, data.playerNum);
+        data.lastUpdate = player.lastUpdate;
+        data.population = player.population;
+        users[data.hash] = data;
+        players[data.hash] = player;
+        socket.emit(Messages.H_Room_Update, users);
+    });
+
+    socket.on(Messages.H_Currency_Click, function (hash) {
+        users[hash].population += 1;
+        users[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result, users[hash]);
+    });
+
+    socket.on(Messages.H_Attack_Click, function (at) {
+        attacks[at.hash] = at;
+
+        // set the moveX and the moveY of the attack
+        var originPlayer = players[at.originHash];
+        var oX = originPlayer.x + playerHalfWidth;
+        var oY = originPlayer.y + playerHalfHeight;
+        var destPlayer = players[at.targetHash];
+        var destX = destPlayer.x + playerHalfWidth;
+        var destY = destPlayer.y + playerHalfHeight;
+
+        var moveX = (destX - oX) / 100;
+        var moveY = (destY - oY) / 100;
+
+        attacks[at.hash].moveX = moveX;
+        attacks[at.hash].moveY = moveY;
+
+        // emit
+        socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
+    });
+};
 'use strict';
 
 var gamelist = {};
@@ -216,7 +473,8 @@ INFO[STRUCTURE_TYPES.FARM] = {
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
-  defmult: 1
+  defmult: 1,
+  onclick: function onclick() {}
 };
 
 //the stats for the blacksmith
@@ -225,7 +483,8 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
-  defmult: 1
+  defmult: 1,
+  onclick: function onclick() {}
 };
 
 //the stats for the shield
@@ -234,7 +493,8 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
-  defmult: 2
+  defmult: 2,
+  onclick: function onclick() {}
 };
 
 //the stats for the shield
@@ -243,7 +503,8 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   color: 'rgb(70,70,70)',
   popgen: 0,
   atkmult: 1,
-  defmult: 1
+  defmult: 1,
+  onclick: function onclick() {}
 };
 
 // Structure class
@@ -330,232 +591,6 @@ var Player = function Player(hash, name, playerNum) {
 };
 "use strict";
 
-//This is the clients socket
-var socket = {};
-
-var players = {}; //the players in the lobby the client is in
-var users = {}; //a barebones representation of the users
-var attacks = {}; //any attacks being sent
-var canvas = void 0; //the canvas the game is on
-var ctx = void 0; //the canvas context
-var myHash = void 0;
-var myHost = void 0;
-var mouseClicked = false; //is the mouse currently clicked?
-var animationFrame = void 0; // current animatino frame
-
-
-var client_showGame = function client_showGame() {
-    document.querySelector("#game").style.display = "block";
-    document.querySelector("#lobby").style.display = "none";
-
-    animationFrame = requestAnimationFrame(update);
-};
-
-// Function Name: getMouse()
-// returns mouse position in local coordinate system of element
-// Author: Tony Jefferson
-// Last update: 3/1/2014
-var getMouse = function getMouse(e) {
-    var mouse = {};
-    mouse.x = e.pageX - e.target.offsetLeft;
-    mouse.y = e.pageY - e.target.offsetTop;
-    return mouse;
-};
-
-//on click, check if a player was clicked
-var doMouseDown = function doMouseDown(e) {
-    //get location of mouse
-    var mouse = getMouse(e);
-
-    //make sure the player isnt clicking already
-    if (!mouseClicked) {
-        //get the keys
-        var keys = Object.keys(players);
-
-        var myX = players[myHash].x + playerHalfWidth;
-        var myY = players[myHash].y + playerHalfHeight;
-
-        //check if the click was on any of the players
-        for (var i = 0; i < keys.length; i++) {
-            var player = players[keys[i]];
-
-            var posX = player.x;
-            var posY = player.y;
-
-            //if the click was in the square, send it to the server for points;
-            if (mouse.x >= posX && mouse.x <= posX + player.width) {
-                if (mouse.y >= posY && mouse.y <= posY + player.height) {
-                    //check if player is you  
-                    if (myHash === player.hash) {
-                        //send a currency click event 
-                        socket.emit(Messages.C_Currency_Click);
-                    } else {
-                        //send an attack click event 
-                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
-                            y: myY, color: players[myHash].color });
-                    }
-                }
-            }
-        }
-    }
-
-    //disable additional clicks
-    mouseClicked = true;
-};
-
-//allow player to click again once they lift their mouse
-var doMouseUp = function doMouseUp() {
-    mouseClicked = false;
-};
-
-var init = function init() {
-    initializeLobby(); //initialize lobby elements
-
-    // set up canvas stuff
-    canvas = document.querySelector('canvas');
-    ctx = canvas.getContext("2d");
-    canvas.onmousedown = doMouseDown;
-    canvas.onmouseup = doMouseUp;
-
-    //position ad2 at bottom of the screen
-    var adPosition = window.innerHeight - 140;
-    document.querySelector("#ad2").style.top = adPosition + "px";
-
-    socket = io.connect();
-    setupSocket(socket);
-};
-
-window.onload = init;
-"use strict";
-
-var lerp = function lerp(v0, v1, alpha) {
-  return (1 - alpha) * v0 + alpha * v1;
-};
-
-//redraw with requestAnimationFrame
-var redraw = function redraw() {
-  //clear screen
-  ctx.clearRect(0, 0, 700, 500);
-  ctx.fillStyle = "grey";
-  ctx.fillRect(0, 0, 700, 500);
-
-  //draw players
-  var keys = Object.keys(players);
-  for (var i = 0; i < keys.length; i++) {
-    var player = players[keys[i]];
-
-    var halfWidth = playerHalfWidth;
-    var halfHeight = playerHalfHeight;
-
-    //draw outer box
-    ctx.fillStyle = player.color;
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // draw inner box
-    ctx.fillStyle = "white";
-    ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
-
-    // draw their population count
-    ctx.fillStyle = "black";
-    ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
-
-    for (var j = 0; j < 3; j++) {
-      var str = player.structures[j];
-
-      ctx.fillStyle = str.color;
-      ctx.fillRect(str.x, str.y, str.width, str.height);
-    }
-  }
-
-  //get attacks
-  var attackKeys = Object.keys(attacks);
-
-  //if an amount of keys, draw the attacks
-  if (attackKeys.length > 0) {
-    //draw attacks
-    for (var _i = 0; _i < attackKeys.length; _i++) {
-      var attack = attacks[attackKeys[_i]];
-
-      if (attack.alpha < 1) attack.alpha += 0.05;
-
-      //consol
-      //lerp
-      attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-      attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
-
-      //draw
-      ctx.fillStyle = attack.color;
-      ctx.fillRect(attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
-    }
-  }
-};
-
-var update = function update(time) {
-  redraw();
-
-  animationFrame = requestAnimationFrame(update);
-};
-"use strict";
-
-var attackIntervals = {};
-
-var updateAttack = function updateAttack(hash) {
-
-    // This calculation shouldn't actually have to happen
-    // Do this calculation on Attack initialization
-    var at = attacks[hash];
-    var originPlayer = players[at.originHash];
-    var oX = originPlayer.x + playerHalfWidth;
-    var oY = originPlayer.y + playerHalfHeight;
-    var destPlayer = players[at.targetHash];
-    var destX = destPlayer.x + playerHalfWidth;
-    var destY = destPlayer.y + playerHalfHeight;
-
-    var moveX = (destX - oX) / 100;
-    var moveY = (destY - oY) / 100;
-
-    //console.log(at);
-
-    at.destX += moveX;
-    at.destY += moveY;
-    at.updateTick += 1;
-
-    if (at.updateTick > 100) {
-        socket.emit(Messages.H_Attack_Hit, attacks[hash]);
-
-        // Delete and clear this interval
-        clearInterval(attackIntervals[hash]);
-        delete attackIntervals[hash];
-    } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
-};
-
-var onHosted = function onHosted() {
-    document.querySelector("#debug").style.display = "block";
-
-    socket.on(Messages.H_Player_Joined, function (data) {
-        // Add a new user 
-        var player = new Player(data.hash, data.name, data.playerNum);
-        data.lastUpdate = player.lastUpdate;
-        data.population = player.population;
-        users[data.hash] = data;
-        players[data.hash] = player;
-        socket.emit(Messages.H_Room_Update, users);
-    });
-
-    socket.on(Messages.H_Currency_Click, function (hash) {
-        users[hash].population += 1;
-        users[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result, users[hash]);
-    });
-
-    socket.on(Messages.H_Attack_Click, function (at) {
-        attacks[at.hash] = at;
-        socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
-        attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
-    });
-};
-"use strict";
-
 /* ++++++ socket setup Functions ++++++ */
 
 var onAds = function onAds(sock) {
@@ -614,8 +649,7 @@ var onGameUpdate = function onGameUpdate(sock) {
 
   //results of a currency click
   socket.on(Messages.C_Currency_Result, function (data) {
-    //ignore old messages 
-
+    //ignore old messages  
     if (players[data.hash].lastUpdate >= data.lastUpdate) {
       return;
     }
@@ -629,8 +663,14 @@ var onGameUpdate = function onGameUpdate(sock) {
   socket.on(Messages.C_Attack_Update, function (data) {
     // update each attack
     // console.log(data);     
-    attacks[data.hash].destX = data.destX;
-    attacks[data.hash].destY = data.destY;
+    var attackData = data;
+    var attackDataKeys = Object.keys(attackData);
+    for (var i = 0; i < attackDataKeys.length; i++) {
+      //  attacks[attackData[i].hash].alpha = 0.05;
+      attacks[attackData[i].hash].destX = attackData[i].x;
+      attacks[attackData[i].hash].destY = attackData[i].y;
+      attacks[attackData[i].hash].updateTick = attackData[i].tick;
+    }
   });
 
   socket.on(Messages.C_Attack_Create, function (data) {

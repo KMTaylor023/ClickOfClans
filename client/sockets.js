@@ -57,8 +57,7 @@ const onGameUpdate = (sock) => {
   
   //results of a currency click
   socket.on(Messages.C_Currency_Result, (data) => {
-      //ignore old messages 
-      
+      //ignore old messages  
       if (players[data.hash].lastUpdate >= data.lastUpdate){ 
           return;
       }
@@ -72,8 +71,16 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Attack_Update, (data) => {
       // update each attack
       // console.log(data);     
-      attacks[data.hash].destX = data.destX;
-      attacks[data.hash].destY = data.destY;
+      var attackData = data;
+      var attackDataKeys = Object.keys(attackData); 
+      for(var i = 0; i < attackDataKeys.length; i++)
+      { 
+          //  attacks[attackData[i].hash].alpha = 0.05;
+          attacks[attackData[i].hash].destX = attackData[i].x;
+          attacks[attackData[i].hash].destY = attackData[i].y;
+          attacks[attackData[i].hash].updateTick = attackData[i].tick;
+      }
+      
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
