@@ -14,18 +14,20 @@
           </ul>
       </section>
       <section id = "skins">
-          <form class = "grid">
-              <section class = "skinDisplay" id="skin1">
-                  <p><img height="64" width="64" src=""/></p>
-                  <input type="radio" name="skin" value="skin1">
-              </section>
-              <section class = "skinDisplay" id="skin2">
-                  <p><img height="64" width="64" src=""/></p>
-                  <input type="radio" name="skin" value="skin2">
-              </section>
-              <section class = "skinDisplay" id="skin3">
-                  <p><img height="64" width="64" src=""/></p>
-                  <input type="radio" name="skin" value="skin3">
+          <form>
+              <section class = "grid">
+                  <section class = "skinDisplay" id="skin1">
+                      <p><img height="64" width="64" src="/assets/skins/skin1.png"/></p>
+                      <input type="radio" name="skin" value="skin1">
+                  </section>
+                  <section class = "skinDisplay" id="skin2">
+                      <p><img height="64" width="64" src="/assets/skins/skin2.png"/></p>
+                      <input type="radio" name="skin" value="skin2">
+                  </section>
+                  <section class = "skinDisplay" id="skin3">
+                      <p><img height="64" width="64" src="/assets/skins/skin3.png"/></p>
+                      <input type="radio" name="skin" value="skin3">
+                  </section>
               </section>
               <button type="button" id="buyButton">Buy</button>
               <button type="button" id="equipButton">Equip</button>
@@ -35,10 +37,9 @@
     </section>
     <section id="game">
         <canvas id="canvas" height="500" width="700" style="border: 1px solid black;">Please use an HTML 5 browser</canvas>
-        <img class = "ad" id= "ad1" src = "" />
         <div id="debug" style="display: none;">You are the host!</div>
     </section>
-    
+    <img class = "ad" id= "ad1" src = "" />
     <img class = "ad" id= "ad2" src = "" />
   <body>
   </body>

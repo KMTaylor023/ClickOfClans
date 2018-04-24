@@ -13,6 +13,8 @@ const Messages = Object.freeze({
   C_Room_Update: 'c_roomUpdate',    //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer',  //a player left the server
   C_Get_Ads: 'c_ads',             //dispaly some ads
+  C_Buy_Skin: 'c_buy',              //purchase a skin
+  C_Equip_Skin: 'c_equip',          //equip a skin
   //Host messages
   H_Player_Joined: 'h_addPlayer',   //a new player joined the server
   H_Player_Left: 'h_removePlayer',  //a player left the server
@@ -29,6 +31,8 @@ const Messages = Object.freeze({
   S_Disconnect: 'disconnect',        //disconnect from server
   S_Join: 'join',                    //server, I'm joining a room 
   S_SetUser: 's_setUser',
+  S_Buy_Skin: 's_buy',              //was it a successful purchase?
+  S_Equip_Skin: 's_equip',          //did you equip it?
 });
 
 if(typeof module !== 'undefined')

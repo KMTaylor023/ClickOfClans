@@ -85,7 +85,21 @@ const doMouseUp = () => {
 
 //send a message to the server to purchase the chosen skin
 const purchaseSkin = (e) => {
+    //get the skin radio buttons
+    var skins = document.getElementsByName("skin");
     
+    //determine which one is selected
+    var selectedSkin;
+    var selectedSkinNumber;
+    for(var i = 0; i < skins.length; i++) {
+       if(skins[i].checked){
+           selectedSkin = skins[i].value;
+           selectedSkinNumber = i;
+       }
+    }
+    
+    //send the selected skin to the server to purchase
+    socket.emit(Messages.C_Buy_Skin, { skin: selectedSkin, number: selectedSkinNumber });
 };
 
 //send a message to the server to verify the selected skin is owned and then equip it
@@ -110,11 +124,11 @@ const init = () => {
     
   //set event listeners
   lobbyButton.onclick = (e) => {
-      document.querySelector("#lobby").style.display = "block";
+      document.querySelector("#roomSelection").style.display = "block";
       document.querySelector("#skins").style.display = "none";
   };
   skinButton.onclick = (e) => {
-      document.querySelector("#lobby").style.display = "none";
+      document.querySelector("#roomSelection").style.display = "none";
       document.querySelector("#skins").style.display = "block";
   };
   buyButton.onclick = (e) => {

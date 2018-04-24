@@ -8,8 +8,35 @@ const onAds = (sock) => {
         var ad1 = document.querySelector("#ad1");
         var ad2 = document.querySelector("#ad2");
         
-        ad1.src = "./assets/" + data.ad1;
-        ad2.src = "./assets/" + data.ad2;
+        ad1.src = "./assets/ads/" + data.ad1;
+        ad2.src = "./assets/ads/" + data.ad2;
+    });
+};
+
+const onSkinUpdate = (sock) => {
+    const socket = sock;
+    
+    //set up the socket's skin array
+    var skinArray = [];
+    var numSkins = document.getElementsByName("skin").length;   //get the number of skins in the game
+    
+    //initialize the array
+    for (let i = 0; i < numSkins; i++){
+        skinArray[i] = false;
+    }
+    
+    socket.skinArray = skinArray;
+    
+    socket.on(Messages.S_Buy_Skin, (data) => {
+        //determine if the skin was bought successfully
+        if (data.bought){
+            //set the skin to true in the skin array
+            socket.skinArray[data.number] = true;
+            
+            //give the owned class to the skin element
+            var skinElement = document.getElementById(data.skin);  //the section containing the bought skin
+            skinElement.classList.add("owned");
+        }
     });
 };
 
@@ -102,5 +129,6 @@ const setupSocket = (sock) => {
   onLobby(socket);
   onRoomUpdate(socket);
   onGameUpdate(socket);
-
+  onSkinUpdate(socket);
+    
 }
