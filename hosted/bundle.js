@@ -16,6 +16,7 @@ var buyButton = void 0; //click to buy a skin
 var equipButton = void 0; //click to equip a skin
 var skinButton = void 0; //click to go to skin select
 var lobbyButton = void 0; //click to go to the lobby
+var closeButton = void 0; //close the error popup
 
 
 var client_showGame = function client_showGame() {
@@ -83,7 +84,7 @@ var doMouseUp = function doMouseUp() {
 };
 
 //send a message to the server to purchase the chosen skin
-var purchaseSkin = function purchaseSkin(e) {
+var purchaseSkin = function purchaseSkin() {
     //get the skin radio buttons
     var skins = document.getElementsByName("skin");
 
@@ -102,7 +103,23 @@ var purchaseSkin = function purchaseSkin(e) {
 };
 
 //send a message to the server to verify the selected skin is owned and then equip it
-var equipSkin = function equipSkin(e) {};
+var equipSkin = function equipSkin() {
+    //get the skin radio buttons
+    var skins = document.getElementsByName("skin");
+
+    //determine which one is selected
+    var selectedSkin;
+    var selectedSkinNumber;
+    for (var i = 0; i < skins.length; i++) {
+        if (skins[i].checked) {
+            selectedSkin = skins[i].value;
+            selectedSkinNumber = i;
+        }
+    }
+
+    //send the selected skin to the server to purchase
+    socket.emit(Messages.C_Equip_Skin, { skin: selectedSkin, number: selectedSkinNumber });
+};
 
 var init = function init() {
     initializeLobby(); //initialize lobby elements
@@ -118,6 +135,7 @@ var init = function init() {
     skinButton = document.querySelector("#chooseSkinButton");
     buyButton = document.querySelector("#buyButton");
     equipButton = document.querySelector("#equipButton");
+    closeButton = document.querySelector("#closeButton");
 
     //set event listeners
     lobbyButton.onclick = function (e) {
@@ -128,11 +146,10 @@ var init = function init() {
         document.querySelector("#roomSelection").style.display = "none";
         document.querySelector("#skins").style.display = "block";
     };
-    buyButton.onclick = function (e) {
-        purchaseSkin(e);
-    };
-    equipButton.onclick = function (e) {
-        equipSkin(e);
+    buyButton.onclick = purchaseSkin;
+    equipButton.onclick = equipSkin;
+    closeButton.onclick = function (e) {
+        document.querySelector("#unsuccessfulEquip").style.display = "none";
     };
 
     //position ad2 at bottom of the screen
@@ -196,7 +213,6 @@ var redraw = function redraw() {
 
       if (attack.alpha < 1) attack.alpha += 0.05;
 
-      //consol
       //lerp
       attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
       attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
@@ -215,40 +231,25 @@ var update = function update(time) {
 };
 "use strict";
 
-var attackIntervals = {};
+var updateAttack = function updateAttack() {
+    var returnMe = {};
 
-var updateAttack = function updateAttack(hash) {
+    var arOfHashes = Object.keys(attacks);
+    for (var i = 0; i < arOfHashes.length; i++) {
+        var at = attacks[arOfHashes[i]];
+        var newX = at.destX + at.moveX;
+        var newY = at.destY + at.moveY;
+        var newTick = at.updateTick + 1;
 
-    // This calculation shouldn't actually have to happen
-    // Do this calculation on Attack initialization
-    var at = attacks[hash];
-    var originPlayer = players[at.originHash];
-    var oX = originPlayer.x + playerHalfWidth;
-    var oY = originPlayer.y + playerHalfHeight;
-    var destPlayer = players[at.targetHash];
-    var destX = destPlayer.x + playerHalfWidth;
-    var destY = destPlayer.y + playerHalfHeight;
+        if (newTick > 100) socket.emit(Messages.H_Attack_Hit, attacks[arOfHashes[i]]);else returnMe[i] = { hash: arOfHashes[i], x: newX, y: newY, tick: newTick };
+    }
 
-    var moveX = (destX - oX) / 100;
-    var moveY = (destY - oY) / 100;
-
-    //console.log(at);
-
-    at.destX += moveX;
-    at.destY += moveY;
-    at.updateTick += 1;
-
-    if (at.updateTick > 100) {
-        socket.emit(Messages.H_Attack_Hit, attacks[hash]);
-
-        // Delete and clear this interval
-        clearInterval(attackIntervals[hash]);
-        delete attackIntervals[hash];
-    } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
+    socket.emit(Messages.H_Attack_Update, returnMe);
 };
 
 var onHosted = function onHosted() {
     document.querySelector("#debug").style.display = "block";
+    setInterval(updateAttack, 100);
 
     socket.on(Messages.H_Player_Joined, function (data) {
         // Add a new user 
@@ -268,8 +269,23 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Attack_Click, function (at) {
         attacks[at.hash] = at;
+
+        // set the moveX and the moveY of the attack
+        var originPlayer = players[at.originHash];
+        var oX = originPlayer.x + playerHalfWidth;
+        var oY = originPlayer.y + playerHalfHeight;
+        var destPlayer = players[at.targetHash];
+        var destX = destPlayer.x + playerHalfWidth;
+        var destY = destPlayer.y + playerHalfHeight;
+
+        var moveX = (destX - oX) / 100;
+        var moveY = (destY - oY) / 100;
+
+        attacks[at.hash].moveX = moveX;
+        attacks[at.hash].moveY = moveY;
+
+        // emit
         socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
-        attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 };
 'use strict';
@@ -615,131 +631,160 @@ var Player = function Player(hash, name, playerNum) {
 /* ++++++ socket setup Functions ++++++ */
 
 var onAds = function onAds(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Get_Ads, function (data) {
-    //get ad1 and ad2 elements
-    var ad1 = document.querySelector("#ad1");
-    var ad2 = document.querySelector("#ad2");
+    socket.on(Messages.C_Get_Ads, function (data) {
+        //get ad1 and ad2 elements
+        var ad1 = document.querySelector("#ad1");
+        var ad2 = document.querySelector("#ad2");
 
-    ad1.src = "./assets/ads/" + data.ad1;
-    ad2.src = "./assets/ads/" + data.ad2;
-  });
+        ad1.src = "./assets/ads/" + data.ad1;
+        ad2.src = "./assets/ads/" + data.ad2;
+    });
 };
 
 var onSkinUpdate = function onSkinUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  //set up the socket's skin array
-  var skinArray = [];
-  var numSkins = document.getElementsByName("skin").length; //get the number of skins in the game
+    //set up the socket's skin array
+    var skinArray = [];
+    var numSkins = document.getElementsByName("skin").length; //get the number of skins in the game
 
-  //initialize the array
-  for (var i = 0; i < numSkins; i++) {
-    skinArray[i] = false;
-  }
-
-  socket.skinArray = skinArray;
-
-  socket.on(Messages.S_Buy_Skin, function (data) {
-    //determine if the skin was bought successfully
-    if (data.bought) {
-      //set the skin to true in the skin array
-      socket.skinArray[data.number] = true;
-
-      //give the owned class to the skin element
-      var skinElement = document.getElementById(data.skin); //the section containing the bought skin
-      skinElement.classList.add("owned");
+    //initialize the array
+    for (var i = 0; i < numSkins; i++) {
+        skinArray[i] = false;
     }
-  });
+
+    socket.skinArray = skinArray;
+
+    socket.on(Messages.S_Buy_Skin, function (data) {
+        //determine if the skin was bought successfully
+        if (data.bought) {
+            //set the skin to true in the skin array
+            socket.skinArray[data.number] = true;
+
+            //give the owned class to the skin element
+            var skinElement = document.getElementById(data.skin); //the section containing the bought skin
+            skinElement.classList.add("owned");
+        }
+    });
+
+    socket.on(Messages.S_Equip_Skin, function (data) {
+        //determine if the skin was bought successfully
+        if (data.success) {
+            //remove prior equipped skin
+            var prevEquipped = document.getElementsByClassName("equipped");
+            if (prevEquipped) {
+                for (var _i = 0; _i < prevEquipped.length; _i++) {
+                    prevEquipped[_i].classList.remove("equipped");
+                }
+            }
+
+            //set the skin to true in the skin array
+            socket.skin = data.skin;
+
+            //give the owned class to the skin element
+            var skinElement = document.getElementById(data.skin); //the section containing the bought skin
+            skinElement.classList.add("equipped");
+
+            console.dir('equipped ' + data.skin);
+        } else {
+            document.querySelector("#unsuccessfulEquip").style.display = "block";
+        }
+    });
 };
 
 var onLobby = function onLobby(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Update_Lobby, function (data) {
-    manageLobby(data);
-  });
+    socket.on(Messages.C_Update_Lobby, function (data) {
+        manageLobby(data);
+    });
 };
 
 var setPlayers = function setPlayers() {
-  var keys = Object.keys(users);
+    var keys = Object.keys(users);
 
-  for (var i = 0; i < keys.length; i++) {
-    if (players[keys[i]]) continue;
-    var user = users[keys[i]];
-    players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
-  }
+    for (var i = 0; i < keys.length; i++) {
+        if (players[keys[i]]) continue;
+        var user = users[keys[i]];
+        players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+    }
 };
 
 //get the player data from the host
 var onRoomUpdate = function onRoomUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Room_Update, function (data) {
-    users = data;
-    setPlayers();
-  });
+    socket.on(Messages.C_Room_Update, function (data) {
+        users = data;
+        setPlayers();
+    });
 
-  socket.on(Messages.H_Become_Host, function () {
-    onHosted();
-  });
+    socket.on(Messages.H_Become_Host, function () {
+        onHosted();
+    });
 
-  socket.on(Messages.S_SetUser, function (hash, host) {
-    myHash = hash;
-    myHost = host;
-  });
+    socket.on(Messages.S_SetUser, function (hash, host) {
+        myHash = hash;
+        myHost = host;
+    });
 };
 
 //get the game updates from the host
 var onGameUpdate = function onGameUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  //results of a currency click
-  socket.on(Messages.C_Currency_Result, function (data) {
-    //ignore old messages 
+    //results of a currency click
+    socket.on(Messages.C_Currency_Result, function (data) {
+        //ignore old messages  
+        if (players[data.hash].lastUpdate >= data.lastUpdate) {
+            return;
+        }
 
-    if (players[data.hash].lastUpdate >= data.lastUpdate) {
-      return;
-    }
+        //update the data
+        users[data.hash] = data;
+        players[data.hash].population = data.population;
+    });
 
-    //update the data
-    users[data.hash] = data;
-    players[data.hash].population = data.population;
-  });
+    //results of an attack click
+    socket.on(Messages.C_Attack_Update, function (data) {
+        // update each attack
+        // console.log(data);     
+        var attackData = data;
+        var attackDataKeys = Object.keys(attackData);
+        for (var i = 0; i < attackDataKeys.length; i++) {
+            //  attacks[attackData[i].hash].alpha = 0.05;
+            attacks[attackData[i].hash].destX = attackData[i].x;
+            attacks[attackData[i].hash].destY = attackData[i].y;
+            attacks[attackData[i].hash].updateTick = attackData[i].tick;
+        }
+    });
 
-  //results of an attack click
-  socket.on(Messages.C_Attack_Update, function (data) {
-    // update each attack
-    // console.log(data);     
-    attacks[data.hash].destX = data.destX;
-    attacks[data.hash].destY = data.destY;
-  });
+    socket.on(Messages.C_Attack_Create, function (data) {
+        players[data.originHash].population -= 10;
+        users[data.originHash].population -= 10;
+        attacks[data.hash] = data;
+    });
 
-  socket.on(Messages.C_Attack_Create, function (data) {
-    players[data.originHash].population -= 10;
-    users[data.originHash].population -= 10;
-    attacks[data.hash] = data;
-  });
-
-  //an attack hit
-  socket.on(Messages.C_Attack_Hit, function (data) {
-    //remove the attack that hit from attacks somehow
-    //do attack hitting effects
-    var at = attacks[data.hash];
-    players[at.targetHash].population -= 50;
-    users[at.targetHash].population -= 50;
-    delete attacks[data.hash];
-  });
+    //an attack hit
+    socket.on(Messages.C_Attack_Hit, function (data) {
+        //remove the attack that hit from attacks somehow
+        //do attack hitting effects
+        var at = attacks[data.hash];
+        players[at.targetHash].population -= 50;
+        users[at.targetHash].population -= 50;
+        delete attacks[data.hash];
+    });
 };
 
 /* ------ socket setup Functions ------ */
 
 var setupSocket = function setupSocket(sock) {
 
-  onAds(socket);
-  onLobby(socket);
-  onRoomUpdate(socket);
-  onGameUpdate(socket);
-  onSkinUpdate(socket);
+    onAds(socket);
+    onLobby(socket);
+    onRoomUpdate(socket);
+    onGameUpdate(socket);
+    onSkinUpdate(socket);
 };
