@@ -38,6 +38,31 @@ const onSkinUpdate = (sock) => {
             skinElement.classList.add("owned");
         }
     });
+    
+    socket.on(Messages.S_Equip_Skin, (data) => {
+        //determine if the skin was bought successfully
+        if (data.success){
+            //remove prior equipped skin
+            var prevEquipped = document.getElementsByClassName("equipped");
+            if (prevEquipped){
+                for (let i = 0; i < prevEquipped.length; i++){
+                    prevEquipped[i].classList.remove("equipped");
+                }
+            }
+            
+            //set the skin to true in the skin array
+            socket.skin = data.skin;
+            
+            //give the owned class to the skin element
+            var skinElement = document.getElementById(data.skin);  //the section containing the bought skin
+            skinElement.classList.add("equipped");
+            
+            console.dir('equipped ' + data.skin);
+        }
+        else{
+            document.querySelector("#unsuccessfulEquip").style.display = "block";
+        }
+    });
 };
 
 const onLobby = (sock) => {

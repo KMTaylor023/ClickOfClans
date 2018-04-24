@@ -14,6 +14,7 @@ let buyButton;      //click to buy a skin
 let equipButton;    //click to equip a skin
 let skinButton;     //click to go to skin select
 let lobbyButton;    //click to go to the lobby
+let closeButton;    //close the error popup
 
 
 const client_showGame = () => {
@@ -84,7 +85,7 @@ const doMouseUp = () => {
 };
 
 //send a message to the server to purchase the chosen skin
-const purchaseSkin = (e) => {
+const purchaseSkin = () => {
     //get the skin radio buttons
     var skins = document.getElementsByName("skin");
     
@@ -103,8 +104,22 @@ const purchaseSkin = (e) => {
 };
 
 //send a message to the server to verify the selected skin is owned and then equip it
-const equipSkin = (e) => {
+const equipSkin = () => {
+    //get the skin radio buttons
+    var skins = document.getElementsByName("skin");
     
+    //determine which one is selected
+    var selectedSkin;
+    var selectedSkinNumber;
+    for(var i = 0; i < skins.length; i++) {
+       if(skins[i].checked){
+           selectedSkin = skins[i].value;
+           selectedSkinNumber = i;
+       }
+    }
+    
+    //send the selected skin to the server to purchase
+    socket.emit(Messages.C_Equip_Skin, { skin: selectedSkin, number: selectedSkinNumber });
 };
 
 const init = () => {
@@ -121,6 +136,7 @@ const init = () => {
   skinButton = document.querySelector("#chooseSkinButton");
   buyButton = document.querySelector("#buyButton");
   equipButton = document.querySelector("#equipButton");
+  closeButton = document.querySelector("#closeButton");
     
   //set event listeners
   lobbyButton.onclick = (e) => {
@@ -131,11 +147,10 @@ const init = () => {
       document.querySelector("#roomSelection").style.display = "none";
       document.querySelector("#skins").style.display = "block";
   };
-  buyButton.onclick = (e) => {
-      purchaseSkin(e);
-  };
-  equipButton.onclick = (e) => {
-      equipSkin(e);
+  buyButton.onclick = purchaseSkin;
+  equipButton.onclick = equipSkin;
+  closeButton.onclick = (e) => {
+      document.querySelector("#unsuccessfulEquip").style.display = "none";
   };
     
   //position ad2 at bottom of the screen
