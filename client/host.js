@@ -11,8 +11,21 @@ const updateAttack = () =>{
         var newY = at.destY + at.moveY;
         var newTick = at.updateTick + 1;
         
+        
+        if(newTick >= 70 && newTick <= 75)
+        {
+            // Check to see if we can hit anything on the structure
+            var destPlayer = players[at.targetHash];
+            console.log(destPlayer);
+            if(destPlayer.structures[at.lane].type !== STRUCTURE_TYPES.PLACEHOLDER){
+                socket.emit(Messages.H_Attack_Struct, {hash: arOfHashes[i], lane: at.lane, dest: at.targetHash}); 
+                continue;
+            }
+            
+        }
+        
         if(newTick > 100) 
-            socket.emit(Messages.H_Attack_Hit,attacks[arOfHashes[i]]); 
+            socket.emit(Messages.H_Attack_Hit,at); 
         else 
             returnMe[i] = {hash: arOfHashes[i], x: newX, y: newY, tick: newTick}; 
     }
@@ -57,6 +70,14 @@ const onHosted = () => {
         
         attacks[at.hash].moveX = moveX;
         attacks[at.hash].moveY = moveY;
+        
+        // now get the lane we're in
+        if(moveX === 0)
+            attacks[at.hash].lane = 2;
+        else if(moveY === 0)
+            attacks[at.hash].lane = 0;
+        else 
+            attacks[at.hash].lane = 1;
         
         // emit
         socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 

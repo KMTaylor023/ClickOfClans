@@ -125,6 +125,13 @@ const onGameUpdate = (sock) => {
       users[at.targetHash].population -= 50;
       delete attacks[data.hash]; 
   });
+    
+  // a structure was hit
+  socket.on(Messages.C_Attack_Struct, (data) => {
+      
+      players[data.dest].structures[data.lane].health -= 50;
+      delete attacks[data.hash]; 
+  });
 };
 
 

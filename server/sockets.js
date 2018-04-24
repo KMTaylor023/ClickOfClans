@@ -2,7 +2,7 @@ const xxh = require('xxhashjs');
 const Room = require('./classes/Room.js');
 const Attack = require('./classes/Attack.js');
 
-const NUM_SKINS = 3;     //number of available skins
+const NUM_SKINS = 3; // number of available skins
 
 // Pulls in the messages object, where all message names are stored for consistency
 const Messages = require('../client/Messages.js');
@@ -36,13 +36,13 @@ const defaultSocket = (sock) => {
   socket.host = false;
   socket.hostSocket = undefined;
   socket.roomString = undefined;
-    
-  //skin related socket properties
-  socket.skin = null;   //what skin the user has equipped
-  socket.skinArray = [];    //what skins the socket purchased
-  //initialize the array
-  for (let i = 0; i < NUM_SKINS; i++){
-      socket.skinArray[i] = false;
+
+  // skin related socket properties
+  socket.skin = null; // what skin the user has equipped
+  socket.skinArray = []; // what skins the socket purchased
+  // initialize the array
+  for (let i = 0; i < NUM_SKINS; i++) {
+    socket.skinArray[i] = false;
   }
 };
 
@@ -92,6 +92,16 @@ const hostClick = (sock) => {
     io.sockets.in(socket.roomString).emit(Messages.C_Currency_Result, data);
   });
 };
+
+// send the clients information about a hit on a structure
+const hostAttackStruct = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.H_Attack_Struct, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Attack_Struct, data);
+  });
+};
+
 
 // send the host processed data from a fired attack event to the whole room
 const hostAttackFired = (sock) => {
@@ -177,6 +187,7 @@ const joinRoom = (sock, roomName) => {
     hostClick(socket);
     hostAttackFired(socket);
     hostAttackHit(socket);
+    hostAttackStruct(socket);
     hostAttackCreate(socket);
     hostRoomUpdate(socket);
 
@@ -186,7 +197,9 @@ const joinRoom = (sock, roomName) => {
   } else {
     socket.hostSocket = hosts[room.hostSocketHash];
   }
-  const player = { hash: socket.hash, name: socket.playerName, playerNum: socket.playerNum, skin: socket.skin };
+  const player = {
+    hash: socket.hash, name: socket.playerName, playerNum: socket.playerNum, skin: socket.skin,
+  };
   socket.hostSocket.emit(Messages.H_Player_Joined, player);
 
 
@@ -284,15 +297,15 @@ const onJoinRoom = (sock) => {
 
 // on skin actions
 const onSkins = (sock) => {
-    const socket = sock;
-    
-    socket.on(Messages.C_Buy_Skin, (data) => {
-        //"purchase" the skin
-        socket.skinArray[data.number] = true;
-        
-        //send the client that the skin was purchased successfully
-        socket.emit(Messages.S_Buy_Skin, data);
-    });
+  const socket = sock;
+
+  socket.on(Messages.C_Buy_Skin, (data) => {
+    // "purchase" the skin
+    socket.skinArray[data.number] = true;
+
+    // send the client that the skin was purchased successfully
+    socket.emit(Messages.S_Buy_Skin, data);
+  });
 };
 
 // function to setup our socket server

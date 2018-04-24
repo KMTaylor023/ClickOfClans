@@ -196,7 +196,6 @@ var redraw = function redraw() {
 
       if (attack.alpha < 1) attack.alpha += 0.05;
 
-      //consol
       //lerp
       attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
       attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
@@ -215,40 +214,35 @@ var update = function update(time) {
 };
 "use strict";
 
-var attackIntervals = {};
+var updateAttack = function updateAttack() {
+    var returnMe = {};
 
-var updateAttack = function updateAttack(hash) {
+    var arOfHashes = Object.keys(attacks);
+    for (var i = 0; i < arOfHashes.length; i++) {
+        var at = attacks[arOfHashes[i]];
+        var newX = at.destX + at.moveX;
+        var newY = at.destY + at.moveY;
+        var newTick = at.updateTick + 1;
 
-    // This calculation shouldn't actually have to happen
-    // Do this calculation on Attack initialization
-    var at = attacks[hash];
-    var originPlayer = players[at.originHash];
-    var oX = originPlayer.x + playerHalfWidth;
-    var oY = originPlayer.y + playerHalfHeight;
-    var destPlayer = players[at.targetHash];
-    var destX = destPlayer.x + playerHalfWidth;
-    var destY = destPlayer.y + playerHalfHeight;
+        if (newTick >= 70 && newTick <= 75) {
+            // Check to see if we can hit anything on the structure
+            var destPlayer = players[at.targetHash];
+            console.log(destPlayer);
+            if (destPlayer.structures[at.lane].type !== STRUCTURE_TYPES.PLACEHOLDER) {
+                socket.emit(Messages.H_Attack_Struct, { hash: arOfHashes[i], lane: at.lane, dest: at.targetHash });
+                continue;
+            }
+        }
 
-    var moveX = (destX - oX) / 100;
-    var moveY = (destY - oY) / 100;
+        if (newTick > 100) socket.emit(Messages.H_Attack_Hit, at);else returnMe[i] = { hash: arOfHashes[i], x: newX, y: newY, tick: newTick };
+    }
 
-    //console.log(at);
-
-    at.destX += moveX;
-    at.destY += moveY;
-    at.updateTick += 1;
-
-    if (at.updateTick > 100) {
-        socket.emit(Messages.H_Attack_Hit, attacks[hash]);
-
-        // Delete and clear this interval
-        clearInterval(attackIntervals[hash]);
-        delete attackIntervals[hash];
-    } else socket.emit(Messages.H_Attack_Update, attacks[hash]);
+    socket.emit(Messages.H_Attack_Update, returnMe);
 };
 
 var onHosted = function onHosted() {
     document.querySelector("#debug").style.display = "block";
+    setInterval(updateAttack, 100);
 
     socket.on(Messages.H_Player_Joined, function (data) {
         // Add a new user 
@@ -268,8 +262,26 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Attack_Click, function (at) {
         attacks[at.hash] = at;
+
+        // set the moveX and the moveY of the attack
+        var originPlayer = players[at.originHash];
+        var oX = originPlayer.x + playerHalfWidth;
+        var oY = originPlayer.y + playerHalfHeight;
+        var destPlayer = players[at.targetHash];
+        var destX = destPlayer.x + playerHalfWidth;
+        var destY = destPlayer.y + playerHalfHeight;
+
+        var moveX = (destX - oX) / 100;
+        var moveY = (destY - oY) / 100;
+
+        attacks[at.hash].moveX = moveX;
+        attacks[at.hash].moveY = moveY;
+
+        // now get the lane we're in
+        if (moveX === 0) attacks[at.hash].lane = 2;else if (moveY === 0) attacks[at.hash].lane = 0;else attacks[at.hash].lane = 1;
+
+        // emit
         socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
-        attackIntervals[at.hash] = setInterval(updateAttack, 100, at.hash);
     });
 };
 'use strict';
@@ -438,6 +450,7 @@ var Messages = Object.freeze({
   C_Attack_Update: 'c_attackResult', //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
   C_Attack_Hit: 'c_attackHit', //the host said an attack hit
+  C_Attack_Struct: 'c_attackStruct', // the host said a structure was hit
   C_Room_Update: 'c_roomUpdate', //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer', //a player left the server
   C_Get_Ads: 'c_ads', //dispaly some ads
@@ -451,6 +464,7 @@ var Messages = Object.freeze({
   H_Attack_Click: 'h_attackClick', //process an attack click
   H_Attack_Update: 'h_attackUpdate', //results of an attack click
   H_Attack_Create: 'h_attackCreate',
+  H_Attack_Struct: 'h_attackStruct', // when an attack hits a structure
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
@@ -615,131 +629,143 @@ var Player = function Player(hash, name, playerNum) {
 /* ++++++ socket setup Functions ++++++ */
 
 var onAds = function onAds(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Get_Ads, function (data) {
-    //get ad1 and ad2 elements
-    var ad1 = document.querySelector("#ad1");
-    var ad2 = document.querySelector("#ad2");
+    socket.on(Messages.C_Get_Ads, function (data) {
+        //get ad1 and ad2 elements
+        var ad1 = document.querySelector("#ad1");
+        var ad2 = document.querySelector("#ad2");
 
-    ad1.src = "./assets/ads/" + data.ad1;
-    ad2.src = "./assets/ads/" + data.ad2;
-  });
+        ad1.src = "./assets/ads/" + data.ad1;
+        ad2.src = "./assets/ads/" + data.ad2;
+    });
 };
 
 var onSkinUpdate = function onSkinUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  //set up the socket's skin array
-  var skinArray = [];
-  var numSkins = document.getElementsByName("skin").length; //get the number of skins in the game
+    //set up the socket's skin array
+    var skinArray = [];
+    var numSkins = document.getElementsByName("skin").length; //get the number of skins in the game
 
-  //initialize the array
-  for (var i = 0; i < numSkins; i++) {
-    skinArray[i] = false;
-  }
-
-  socket.skinArray = skinArray;
-
-  socket.on(Messages.S_Buy_Skin, function (data) {
-    //determine if the skin was bought successfully
-    if (data.bought) {
-      //set the skin to true in the skin array
-      socket.skinArray[data.number] = true;
-
-      //give the owned class to the skin element
-      var skinElement = document.getElementById(data.skin); //the section containing the bought skin
-      skinElement.classList.add("owned");
+    //initialize the array
+    for (var i = 0; i < numSkins; i++) {
+        skinArray[i] = false;
     }
-  });
+
+    socket.skinArray = skinArray;
+
+    socket.on(Messages.S_Buy_Skin, function (data) {
+        //determine if the skin was bought successfully
+        if (data.bought) {
+            //set the skin to true in the skin array
+            socket.skinArray[data.number] = true;
+
+            //give the owned class to the skin element
+            var skinElement = document.getElementById(data.skin); //the section containing the bought skin
+            skinElement.classList.add("owned");
+        }
+    });
 };
 
 var onLobby = function onLobby(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Update_Lobby, function (data) {
-    manageLobby(data);
-  });
+    socket.on(Messages.C_Update_Lobby, function (data) {
+        manageLobby(data);
+    });
 };
 
 var setPlayers = function setPlayers() {
-  var keys = Object.keys(users);
+    var keys = Object.keys(users);
 
-  for (var i = 0; i < keys.length; i++) {
-    if (players[keys[i]]) continue;
-    var user = users[keys[i]];
-    players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
-  }
+    for (var i = 0; i < keys.length; i++) {
+        if (players[keys[i]]) continue;
+        var user = users[keys[i]];
+        players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+    }
 };
 
 //get the player data from the host
 var onRoomUpdate = function onRoomUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  socket.on(Messages.C_Room_Update, function (data) {
-    users = data;
-    setPlayers();
-  });
+    socket.on(Messages.C_Room_Update, function (data) {
+        users = data;
+        setPlayers();
+    });
 
-  socket.on(Messages.H_Become_Host, function () {
-    onHosted();
-  });
+    socket.on(Messages.H_Become_Host, function () {
+        onHosted();
+    });
 
-  socket.on(Messages.S_SetUser, function (hash, host) {
-    myHash = hash;
-    myHost = host;
-  });
+    socket.on(Messages.S_SetUser, function (hash, host) {
+        myHash = hash;
+        myHost = host;
+    });
 };
 
 //get the game updates from the host
 var onGameUpdate = function onGameUpdate(sock) {
-  var socket = sock;
+    var socket = sock;
 
-  //results of a currency click
-  socket.on(Messages.C_Currency_Result, function (data) {
-    //ignore old messages 
+    //results of a currency click
+    socket.on(Messages.C_Currency_Result, function (data) {
+        //ignore old messages  
+        if (players[data.hash].lastUpdate >= data.lastUpdate) {
+            return;
+        }
 
-    if (players[data.hash].lastUpdate >= data.lastUpdate) {
-      return;
-    }
+        //update the data
+        users[data.hash] = data;
+        players[data.hash].population = data.population;
+    });
 
-    //update the data
-    users[data.hash] = data;
-    players[data.hash].population = data.population;
-  });
+    //results of an attack click
+    socket.on(Messages.C_Attack_Update, function (data) {
+        // update each attack
+        // console.log(data);     
+        var attackData = data;
+        var attackDataKeys = Object.keys(attackData);
+        for (var i = 0; i < attackDataKeys.length; i++) {
+            //  attacks[attackData[i].hash].alpha = 0.05;
+            attacks[attackData[i].hash].destX = attackData[i].x;
+            attacks[attackData[i].hash].destY = attackData[i].y;
+            attacks[attackData[i].hash].updateTick = attackData[i].tick;
+        }
+    });
 
-  //results of an attack click
-  socket.on(Messages.C_Attack_Update, function (data) {
-    // update each attack
-    // console.log(data);     
-    attacks[data.hash].destX = data.destX;
-    attacks[data.hash].destY = data.destY;
-  });
+    socket.on(Messages.C_Attack_Create, function (data) {
+        players[data.originHash].population -= 10;
+        users[data.originHash].population -= 10;
+        attacks[data.hash] = data;
+    });
 
-  socket.on(Messages.C_Attack_Create, function (data) {
-    players[data.originHash].population -= 10;
-    users[data.originHash].population -= 10;
-    attacks[data.hash] = data;
-  });
+    //an attack hit
+    socket.on(Messages.C_Attack_Hit, function (data) {
+        //remove the attack that hit from attacks somehow
+        //do attack hitting effects
+        var at = attacks[data.hash];
+        players[at.targetHash].population -= 50;
+        users[at.targetHash].population -= 50;
+        delete attacks[data.hash];
+    });
 
-  //an attack hit
-  socket.on(Messages.C_Attack_Hit, function (data) {
-    //remove the attack that hit from attacks somehow
-    //do attack hitting effects
-    var at = attacks[data.hash];
-    players[at.targetHash].population -= 50;
-    users[at.targetHash].population -= 50;
-    delete attacks[data.hash];
-  });
+    // a structure was hit
+    socket.on(Messages.C_Attack_Struct, function (data) {
+
+        players[data.dest].structures[data.lane].health -= 50;
+        delete attacks[data.hash];
+    });
 };
 
 /* ------ socket setup Functions ------ */
 
 var setupSocket = function setupSocket(sock) {
 
-  onAds(socket);
-  onLobby(socket);
-  onRoomUpdate(socket);
-  onGameUpdate(socket);
-  onSkinUpdate(socket);
+    onAds(socket);
+    onLobby(socket);
+    onRoomUpdate(socket);
+    onGameUpdate(socket);
+    onSkinUpdate(socket);
 };

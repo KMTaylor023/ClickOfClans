@@ -20,6 +20,7 @@ class Attack {
     this.y = originY;
     this.moveX = 0;
     this.moveY = 0;
+    this.lane = 0;
   }
 }
 
