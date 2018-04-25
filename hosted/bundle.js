@@ -71,6 +71,23 @@ var doMouseDown = function doMouseDown(e) {
                     }
                 }
             }
+
+            if (myHash === player.hash) {
+                for (var j = 0; j < 3; j++) {
+                    var struct = player.structures[j];
+                    if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
+                        if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
+                            var type = struct.type;
+
+                            struct.onClick(mouse.x - struct.x, struct);
+
+                            if (struct.type !== type) {
+                                socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -177,9 +194,9 @@ var lerp = function lerp(v0, v1, alpha) {
 //redraw with requestAnimationFrame
 var redraw = function redraw() {
     //clear screen
-    ctx.clearRect(0, 0, 700, 500);
+    ctx.clearRect(0, 0, 704, 704);
     ctx.fillStyle = "grey";
-    ctx.fillRect(0, 0, 700, 500);
+    ctx.fillRect(0, 0, 704, 704);
 
     //draw players
     var keys = Object.keys(players);
@@ -315,6 +332,8 @@ var onHosted = function onHosted() {
         // emit
         socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
     });
+
+    socket.on(Messages.H_Purchase_Structure, function (data) {});
 };
 'use strict';
 
@@ -478,6 +497,7 @@ var Messages = Object.freeze({
   C_Error: 'c_err', //oh dear. theres been an error
   C_Currency_Click: 'c_currencyClick', //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult', //the host told me a currency click happened
+  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure
   C_Attack_Click: 'c_attackClick', //Im firing an attack
   C_Attack_Update: 'c_attackResult', //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
@@ -516,12 +536,12 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var positions = [{ x: 50, y: 50 }, { x: 550, y: 350 }, { x: 50, y: 350 }, { x: 550, y: 50 }];
+var positions = [{ x: 48, y: 48 }, { x: 560, y: 560 }, { x: 48, y: 560 }, { x: 560, y: 48 }];
 
-var structure_positions = [[{ x: 160, y: 75 }, { x: 160, y: 160 }, { x: 75, y: 160 }], [{ x: 490, y: 375 }, { x: 490, y: 290 }, { x: 575, y: 290 }], [{ x: 160, y: 375 }, { x: 160, y: 290 }, { x: 75, y: 290 }], [{ x: 490, y: 75 }, { x: 490, y: 160 }, { x: 575, y: 160 }]];
+var structure_positions = [[{ x: 192, y: 64 }, { x: 192, y: 192 }, { x: 64, y: 192 }], [{ x: 448, y: 576 }, { x: 448, y: 448 }, { x: 576, y: 448 }], [{ x: 64, y: 448 }, { x: 192, y: 448 }, { x: 192, y: 576 }], [{ x: 448, y: 64 }, { x: 448, y: 192 }, { x: 576, y: 192 }]];
 var colors = ["red", "blue", "yellow", "green"];
-var playerWidth = 100;
-var playerHeight = 100;
+var playerWidth = 96;
+var playerHeight = 96;
 var playerHalfWidth = playerWidth / 2;
 var playerHalfHeight = playerHeight / 2;
 
@@ -571,13 +591,13 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   popgen: 0,
   atkmult: 1,
   defmult: 1,
-  onClick: function onClick(xPos) {
-    if (xPos < undefined.width / 3) {
-      undefined.setup(STRUCTURE_TYPES.SHIELD);
-    } else if (xPos > 2 * (undefined.width / 3)) {
-      undefined.setup(STRUCTURE_TYPES.FARM);
+  onClick: function onClick(xPos, struct) {
+    if (xPos < struct.width / 3) {
+      struct.setup(STRUCTURE_TYPES.SHIELD);
+    } else if (xPos > 2 * (struct.width / 3)) {
+      struct.setup(STRUCTURE_TYPES.FARM);
     } else {
-      undefined.setup(STRUCTURE_TYPES.BSMITH);
+      struct.setup(STRUCTURE_TYPES.BSMITH);
     }
   }
 };
@@ -591,8 +611,8 @@ var Structure = function () {
     this.x = x;
     this.y = y;
 
-    this.width = 50;
-    this.height = 50;
+    this.width = 64;
+    this.height = 64;
 
     this.setup(type);
   }
@@ -611,7 +631,7 @@ var Structure = function () {
       this.defmult = inf.defmult;
       this.destroyed = false;
 
-      this.onClick = inf.onClick.bind(this);
+      this.onClick = inf.onClick;
     }
   }, {
     key: "reset",

@@ -6,9 +6,9 @@ const lerp = (v0, v1, alpha) => {
 //redraw with requestAnimationFrame
 const redraw = () => { 
   //clear screen
-  ctx.clearRect(0, 0, 700, 500);
+  ctx.clearRect(0, 0, 704, 704);
   ctx.fillStyle = "grey";
-  ctx.fillRect(0,0,700,500);
+  ctx.fillRect(0,0,704,704);
   
   //draw players
   const keys = Object.keys(players); 

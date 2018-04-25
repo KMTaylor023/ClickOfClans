@@ -1,17 +1,17 @@
 const positions = [ 
-    { x: 50, y: 50} , 
-    { x: 550, y: 350} , 
-    { x: 50, y: 350} , 
-    { x: 550, y: 50}]; 
+    { x: 48, y: 48} , 
+    { x: 560, y: 560} , 
+    { x: 48, y: 560} , 
+    { x: 560, y: 48}]; 
 
 const structure_positions = [
-  [{x:160, y: 75}, {x: 160, y: 160}, {x: 75, y: 160}],
-  [{x:490, y: 375}, {x: 490, y: 290}, {x: 575, y: 290}],
-  [{x:160, y: 375}, {x: 160, y: 290}, {x: 75, y: 290}],
-  [{x:490, y: 75}, {x: 490, y: 160}, {x: 575, y: 160}]];
+  [{x:192, y: 64}, {x: 192, y: 192}, {x: 64, y: 192}],
+  [{x:448, y: 576}, {x: 448, y: 448}, {x: 576, y: 448}],
+  [{x:64, y: 448}, {x: 192, y: 448}, {x: 192, y: 576}],
+  [{x:448, y: 64}, {x: 448, y: 192}, {x: 576, y: 192}]];
 const colors = ["red","blue","yellow","green"];
-const playerWidth = 100;
-const playerHeight = 100;
+const playerWidth = 96;
+const playerHeight = 96;
 const playerHalfWidth = playerWidth/2;
 const playerHalfHeight = playerHeight/2;
 
@@ -86,8 +86,8 @@ class Structure {
     this.x = x;
     this.y = y;
     
-    this.width = 50;
-    this.height = 50;
+    this.width = 64;
+    this.height = 64;
     
     this.setup(type);
   }
