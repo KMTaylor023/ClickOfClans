@@ -211,13 +211,13 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   popgen: 0,
   atkmult: 1,
   defmult: 1,
-  onClick: function onClick(xPos) {
-    if (xPos < undefined.width / 3) {
-      undefined.setup(STRUCTURE_TYPES.SHIELD);
-    } else if (xPos > 2 * (undefined.width / 3)) {
-      undefined.setup(STRUCTURE_TYPES.FARM);
+  onClick: function onClick(xPos, struct) {
+    if (xPos < struct.width / 3) {
+      struct.setup(STRUCTURE_TYPES.SHIELD);
+    } else if (xPos > 2 * (struct.width / 3)) {
+      struct.setup(STRUCTURE_TYPES.FARM);
     } else {
-      undefined.setup(STRUCTURE_TYPES.BSMITH);
+      struct.setup(STRUCTURE_TYPES.BSMITH);
     }
   }
 };
@@ -251,7 +251,7 @@ var Structure = function () {
       this.defmult = inf.defmult;
       this.destroyed = false;
 
-      this.onClick = inf.onClick.bind(this);
+      this.onClick = inf.onClick;
     }
   }, {
     key: "reset",
@@ -316,6 +316,7 @@ var Messages = Object.freeze({
   C_Error: 'c_err', //oh dear. theres been an error
   C_Currency_Click: 'c_currencyClick', //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult', //the host told me a currency click happened
+  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure
   C_Attack_Click: 'c_attackClick', //Im firing an attack
   C_Attack_Update: 'c_attackResult', //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
@@ -418,6 +419,23 @@ var doMouseDown = function doMouseDown(e) {
                         //send an attack click event 
                         socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
                             y: myY, color: players[myHash].color });
+                    }
+                }
+            }
+
+            if (myHash === player.hash) {
+                for (var j = 0; j < 3; j++) {
+                    var struct = player.structures[j];
+                    if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
+                        if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
+                            var type = struct.type;
+
+                            struct.onClick(mouse.x - struct.x, struct);
+
+                            if (struct.type !== type) {
+                                socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
+                            }
+                        }
                     }
                 }
             }
@@ -650,6 +668,8 @@ var onHosted = function onHosted() {
         // emit
         socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
     });
+
+    socket.on(Messages.H_Purchase_Structure, function (data) {});
 };
 "use strict";
 

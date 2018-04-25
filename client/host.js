@@ -82,4 +82,8 @@ const onHosted = () => {
         // emit
         socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
     });
+  
+    socket.on(Messages.H_Purchase_Structure, (data) => {
+      
+    })
 }
