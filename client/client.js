@@ -155,6 +155,13 @@ const init = () => {
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;
+  
+  //make sure ad isnt in the canvas
+  if (adPosition < 500) {
+      adPosition = 600;
+  }
+    
+  //move the ad
   document.querySelector("#ad2").style.top = adPosition + "px";
     
   socket = io.connect();

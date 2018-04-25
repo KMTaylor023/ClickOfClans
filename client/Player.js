@@ -123,7 +123,7 @@ class Structure {
 
 // Character class
 class Player {
-  constructor(hash, name, playerNum) {
+  constructor(hash, name, playerNum, skin) {
     this.hash = hash;
     this.name = name;
     this.population = 0;
@@ -141,6 +141,7 @@ class Player {
     // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
     // position 3 = vertical lane
     this.structures = [];
+    this.skin = skin;       //has a string if the player equips a skin, otherwise null
     
     const strPos = structure_positions[playerNum];
     

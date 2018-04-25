@@ -17,15 +17,23 @@ const redraw = () => {
     
     let halfWidth = playerHalfWidth;
     let halfHeight = playerHalfHeight;
-      
-    //draw outer box
-    ctx.fillStyle = player.color; 
-    ctx.fillRect(player.x,player.y,player.width, player.height);
     
-    // draw inner box
-    ctx.fillStyle = "white";
-    ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
- 
+    //draw player
+    /*if (player.skin){
+        //get the skin url
+        var skinUrl = "/assets/skins/" + player.skin + ".png";
+        //draw the skin
+        ctx.drawImage(skinUrl, player.x, player.y);
+    }
+    else {*/
+        //draw outer box
+        ctx.fillStyle = player.color; 
+        ctx.fillRect(player.x,player.y,player.width, player.height);
+
+        // draw inner box
+        ctx.fillStyle = "white";
+        ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
+    //}
     // draw their population count
     ctx.fillStyle = "black";
     ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  
