@@ -6,6 +6,7 @@ const Messages = Object.freeze({
   C_Error: 'c_err',     //oh dear. theres been an error
   C_Currency_Click: 'c_currencyClick',      //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult',    //the host told me a currency click happened
+  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure
   C_Attack_Click: 'c_attackClick',      //Im firing an attack
   C_Attack_Update: 'c_attackResult',    //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created

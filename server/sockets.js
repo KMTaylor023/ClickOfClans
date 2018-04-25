@@ -83,7 +83,7 @@ const updateLobby = (room) => {
   }
 };
 
-// host relay functions
+// host relay functions ++++++++++++++++++++++++++++++++++++++++++++++++
 // send the host processed data from a click event to the whole room
 const hostClick = (sock) => {
   const socket = sock;
@@ -119,6 +119,14 @@ const hostAttackCreate = (sock) => {
     io.sockets.in(socket.roomString).emit(Messages.C_Attack_Create, data);
   });
 };
+
+const hostPurchaseStructure = (sock) => {
+  const socket = sock;
+  
+  socket.on(Messages.H_Purchase_Structure, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.H_Purchase_Structure, data);
+  });
+}
 
 // send the host processed data from an attack hit event to the whole room
 const hostAttackHit = (sock) => {
@@ -370,6 +378,10 @@ const setupSockets = (ioServer) => {
 
       // send the target data to the host
       socket.hostSocket.emit(Messages.H_Attack_Click, attack);
+    });
+    
+    socket.on(Messages.C_Purchase_Structure, (data) => {
+      socket.hostSocket.emit(messages.H_Purchase_Structure, data);
     });
 
 

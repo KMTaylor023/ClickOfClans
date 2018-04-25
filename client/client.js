@@ -71,6 +71,24 @@ const doMouseDown = (e) => {
                     }
                 }
             }
+          
+          if(myHash === player.hash) {
+            for(var j = 0; j < 3; j++){
+              const struct = player.structures[j];
+              if(mouse.x >= struct.x && mouse.x <= struct.x + struct.width){
+                 if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height){
+                   const type = struct.type;
+                   
+                   struct.onClick(mouse.x - struct.x, struct);
+                   
+                   if(struct.type !== type){
+                     socket.emit(Messages.C_Purchase_Structure, {which: j, type: struct.type});
+                   }
+                 }
+              }
+            }
+          }
+          
         }
         
     }
