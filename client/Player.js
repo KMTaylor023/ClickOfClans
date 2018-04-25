@@ -31,7 +31,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
   popgen: 2,
   atkmult: 1,
   defmult: 1,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -43,7 +43,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
   popgen: 0,
   atkmult: 2,
   defmult: 1,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -55,7 +55,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
   popgen: 0,
   atkmult: 1,
   defmult: 2,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -67,8 +67,14 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   popgen: 0,
   atkmult: 1,
   defmult: 1,
-  onclick: () => {
-    
+  onClick: (xPos) => {
+    if(xPos < this.width / 3) {
+      this.setup(STRUCTURE_TYPES.SHIELD);
+    } else if(xPos > 2 * (this.width / 3)) {
+      this.setup(STRUCTURE_TYPES.FARM);
+    } else {
+      this.setup(STRUCTURE_TYPES.BSMITH);
+    }
   },
 };
 
@@ -97,6 +103,8 @@ class Structure {
     this.atkmult = inf.atkmult;
     this.defmult = inf.defmult;
     this.destroyed = false;
+    
+    this.onClick = inf.onClick.bind(this);
   }
   
   reset() {
