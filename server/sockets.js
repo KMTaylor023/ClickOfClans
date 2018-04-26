@@ -83,7 +83,7 @@ const updateLobby = (room) => {
   }
 };
 
-// host relay functions
+// host relay functions ++++++++++++++++++++++++++++++++++++++++++++++++
 // send the host processed data from a click event to the whole room
 const hostClick = (sock) => {
   const socket = sock;
@@ -117,6 +117,14 @@ const hostAttackCreate = (sock) => {
 
   socket.on(Messages.H_Attack_Create, (data) => {
     io.sockets.in(socket.roomString).emit(Messages.C_Attack_Create, data);
+  });
+};
+
+const hostPurchaseStructure = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.H_Purchase_Structure, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.H_Purchase_Structure, data);
   });
 };
 
@@ -297,33 +305,33 @@ const onJoinRoom = (sock) => {
 
 // on skin actions
 const onSkins = (sock) => {
-    const socket = sock;
-    
-    socket.on(Messages.C_Buy_Skin, (data) => {
-        //"purchase" the skin
-        socket.skinArray[data.number] = true;
-        
-        //tell the client the skin was bought
-        data.bought = true;
-        
-        //send the client that the skin was purchased successfully
-        socket.emit(Messages.S_Buy_Skin, data);
-    });
-    
-    socket.on(Messages.C_Equip_Skin, (data) => {
-        //verify the skin is owned
-        if (socket.skinArray[data.number]){
-            //set skin
-            socket.skin = data.skin;
-            
-            //send message to the client that the skin was equipped
-            socket.emit(Messages.S_Equip_Skin, { skin: socket.skin, number: data.number, success: true });
-        }
-        else{
-            //send message to the client that the skin wasnt equipped
-            socket.emit(Messages.S_Equip_Skin, { skin: data.skin, number: data.number, success: false });
-        }
-    }); 
+  const socket = sock;
+
+  socket.on(Messages.C_Buy_Skin, (dt) => {
+    const data = dt;
+    // "purchase" the skin
+    socket.skinArray[data.number] = true;
+
+    // tell the client the skin was bought
+    data.bought = true;
+
+    // send the client that the skin was purchased successfully
+    socket.emit(Messages.S_Buy_Skin, data);
+  });
+
+  socket.on(Messages.C_Equip_Skin, (data) => {
+    // verify the skin is owned
+    if (socket.skinArray[data.number]) {
+      // set skin
+      socket.skin = data.skin;
+
+      // send message to the client that the skin was equipped
+      socket.emit(Messages.S_Equip_Skin, { skin: socket.skin, number: data.number, success: true });
+    } else {
+      // send message to the client that the skin wasnt equipped
+      socket.emit(Messages.S_Equip_Skin, { skin: data.skin, number: data.number, success: false });
+    }
+  });
 };
 
 // function to setup our socket server
@@ -370,6 +378,10 @@ const setupSockets = (ioServer) => {
 
       // send the target data to the host
       socket.hostSocket.emit(Messages.H_Attack_Click, attack);
+    });
+
+    socket.on(Messages.C_Purchase_Structure, (data) => {
+      socket.hostSocket.emit(Messages.H_Purchase_Structure, data);
     });
 
 

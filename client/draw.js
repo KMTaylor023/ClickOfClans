@@ -6,9 +6,9 @@ const lerp = (v0, v1, alpha) => {
 //redraw with requestAnimationFrame
 const redraw = () => { 
   //clear screen
-  ctx.clearRect(0, 0, 700, 500);
+  ctx.clearRect(0, 0, 704, 704);
   ctx.fillStyle = "grey";
-  ctx.fillRect(0,0,700,500);
+  ctx.fillRect(0,0,704,704);
   
   //draw players
   const keys = Object.keys(players); 
@@ -17,15 +17,23 @@ const redraw = () => {
     
     let halfWidth = playerHalfWidth;
     let halfHeight = playerHalfHeight;
-      
-    //draw outer box
-    ctx.fillStyle = player.color; 
-    ctx.fillRect(player.x,player.y,player.width, player.height);
     
-    // draw inner box
-    ctx.fillStyle = "white";
-    ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
- 
+    //draw player
+    /*if (player.skin){
+        //get the skin url
+        var skinUrl = "/assets/skins/" + player.skin + ".png";
+        //draw the skin
+        ctx.drawImage(skinUrl, player.x, player.y);
+    }
+    else {*/
+        //draw outer box
+        ctx.fillStyle = player.color; 
+        ctx.fillRect(player.x,player.y,player.width, player.height);
+
+        // draw inner box
+        ctx.fillStyle = "white";
+        ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
+    //}
     // draw their population count
     ctx.fillStyle = "black";
     ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  

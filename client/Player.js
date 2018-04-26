@@ -1,17 +1,17 @@
 const positions = [ 
-    { x: 50, y: 50} , 
-    { x: 550, y: 350} , 
-    { x: 50, y: 350} , 
-    { x: 550, y: 50}]; 
+    { x: 48, y: 48} , 
+    { x: 560, y: 560} , 
+    { x: 48, y: 560} , 
+    { x: 560, y: 48}]; 
 
 const structure_positions = [
-  [{x:160, y: 75}, {x: 160, y: 160}, {x: 75, y: 160}],
-  [{x:490, y: 375}, {x: 490, y: 290}, {x: 575, y: 290}],
-  [{x:160, y: 375}, {x: 160, y: 290}, {x: 75, y: 290}],
-  [{x:490, y: 75}, {x: 490, y: 160}, {x: 575, y: 160}]];
+  [{x:192, y: 64}, {x: 192, y: 192}, {x: 64, y: 192}],
+  [{x:448, y: 576}, {x: 448, y: 448}, {x: 576, y: 448}],
+  [{x:64, y: 448}, {x: 192, y: 448}, {x: 192, y: 576}],
+  [{x:448, y: 64}, {x: 448, y: 192}, {x: 576, y: 192}]];
 const colors = ["red","blue","yellow","green"];
-const playerWidth = 100;
-const playerHeight = 100;
+const playerWidth = 96;
+const playerHeight = 96;
 const playerHalfWidth = playerWidth/2;
 const playerHalfHeight = playerHeight/2;
 
@@ -31,7 +31,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
   popgen: 2,
   atkmult: 1,
   defmult: 1,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -43,7 +43,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
   popgen: 0,
   atkmult: 2,
   defmult: 1,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -55,7 +55,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
   popgen: 0,
   atkmult: 1,
   defmult: 2,
-  onclick: () => {
+  onClick: () => {
     
   },
 };
@@ -67,8 +67,14 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   popgen: 0,
   atkmult: 1,
   defmult: 1,
-  onclick: () => {
-    
+  onClick: (xPos, struct) => {
+    if(xPos < struct.width / 3) {
+      struct.setup(STRUCTURE_TYPES.SHIELD);
+    } else if(xPos > 2 * (struct.width / 3)) {
+      struct.setup(STRUCTURE_TYPES.FARM);
+    } else {
+      struct.setup(STRUCTURE_TYPES.BSMITH);
+    }
   },
 };
 
@@ -80,8 +86,8 @@ class Structure {
     this.x = x;
     this.y = y;
     
-    this.width = 50;
-    this.height = 50;
+    this.width = 64;
+    this.height = 64;
     
     this.setup(type);
   }
@@ -97,6 +103,8 @@ class Structure {
     this.atkmult = inf.atkmult;
     this.defmult = inf.defmult;
     this.destroyed = false;
+    
+    this.onClick = inf.onClick;
   }
   
   reset() {
@@ -115,7 +123,7 @@ class Structure {
 
 // Character class
 class Player {
-  constructor(hash, name, playerNum) {
+  constructor(hash, name, playerNum, skin) {
     this.hash = hash;
     this.name = name;
     this.population = 0;
@@ -133,6 +141,7 @@ class Player {
     // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
     // position 3 = vertical lane
     this.structures = [];
+    this.skin = skin;       //has a string if the player equips a skin, otherwise null
     
     const strPos = structure_positions[playerNum];
     

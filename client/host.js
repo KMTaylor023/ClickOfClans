@@ -40,7 +40,7 @@ const onHosted = () => {
     
     socket.on(Messages.H_Player_Joined, (data) => { 
         // Add a new user 
-        const player = new Player(data.hash, data.name, data.playerNum);
+        const player = new Player(data.hash, data.name, data.playerNum, data.skin);
         data.lastUpdate = player.lastUpdate;
         data.population = player.population;
         users[data.hash] = data; 
@@ -82,4 +82,8 @@ const onHosted = () => {
         // emit
         socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
     });
+  
+    socket.on(Messages.H_Purchase_Structure, (data) => {
+      
+    })
 }
