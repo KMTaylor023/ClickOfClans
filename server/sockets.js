@@ -54,7 +54,7 @@ const sendAds = (sock) => {
 
   // determine ad 1
   let randNum = Math.floor(Math.random() * 5) + 1; // 1 to 5
-  ads.ad1 = `ad${randNum}.jpg`;
+  ads.ad1 = `ad${randNum}.png`;
 
   // determine ad 2
   randNum = Math.floor(Math.random() * 5) + 6; // 6 to 10
