@@ -49,15 +49,15 @@ const onSkinUpdate = (sock) => {
                     prevEquipped[i].classList.remove("equipped");
                 }
             }
-            
             //set the skin to true in the skin array
-            socket.skin = data.skin;
+            socket.skin = data.number;
             
             //give the owned class to the skin element
             var skinElement = document.getElementById(data.skin);  //the section containing the bought skin
             skinElement.classList.add("equipped");
             
             console.dir('equipped ' + data.skin);
+            console.log(skins[socket.skin]);
         }
         else{
             document.querySelector("#unsuccessfulEquip").style.display = "block";
@@ -79,7 +79,7 @@ const setPlayers = () => {
   for(let i = 0; i < keys.length; i++){
     if(players[keys[i]]) continue;
     const user = users[keys[i]];
-    players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+    players[keys[i]] = new Player(user.hash, user.name, user.playerNum, user.skin);
   }
 }
 

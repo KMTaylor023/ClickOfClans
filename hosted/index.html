@@ -5,6 +5,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/bundle.js"></script>
   </head>
+    <img class = "ad" id= "ad1" src = "" />
      <section id="lobby">
       <section id="roomSelection">
           <input type="text" id="room_name_input" placeholder="Enter Room Name...">
@@ -17,15 +18,15 @@
           <form>
               <section class = "grid">
                   <section class = "skinDisplay" id="skin1">
-                      <p><img height="64" width="64" src="/assets/skins/skin1.png"/></p>
+                      <p><img height="64" width="64" class="skin" src="/assets/skins/skin1.png"/></p>
                       <input type="radio" name="skin" value="skin1">
                   </section>
                   <section class = "skinDisplay" id="skin2">
-                      <p><img height="64" width="64" src="/assets/skins/skin2.png"/></p>
+                      <p><img height="64" width="64" class="skin" src="/assets/skins/skin2.png"/></p>
                       <input type="radio" name="skin" value="skin2">
                   </section>
                   <section class = "skinDisplay" id="skin3">
-                      <p><img height="64" width="64" src="/assets/skins/skin3.png"/></p>
+                      <p><img height="64" width="64" class="skin" src="/assets/skins/skin3.png"/></p>
                       <input type="radio" name="skin" value="skin3">
                   </section>
               </section>
@@ -44,7 +45,6 @@
         <canvas id="canvas" height="704" width="704" style="border: 1px solid black;">Please use an HTML 5 browser</canvas>
         <div id="debug" style="display: none;">You are the host!</div>
     </section>
-    <img class = "ad" id= "ad1" src = "" />
     <img class = "ad" id= "ad2" src = "" />
   <body>
   </body>

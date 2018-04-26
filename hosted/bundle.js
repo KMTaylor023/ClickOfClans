@@ -17,7 +17,7 @@ var equipButton = void 0; //click to equip a skin
 var skinButton = void 0; //click to go to skin select
 var lobbyButton = void 0; //click to go to the lobby
 var closeButton = void 0; //close the error popup
-
+var skins = [];
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -169,12 +169,15 @@ var init = function init() {
         document.querySelector("#unsuccessfulEquip").style.display = "none";
     };
 
+    //load the skin images
+    skins = document.getElementsByClassName("skin");
+
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
 
     //make sure ad isnt in the canvas
-    if (adPosition < 500) {
-        adPosition = 600;
+    if (adPosition < 704) {
+        adPosition = 800;
     }
 
     //move the ad
@@ -207,21 +210,22 @@ var redraw = function redraw() {
         var halfHeight = playerHalfHeight;
 
         //draw player
-        /*if (player.skin){
+        if (player.skin != null) {
+            //!= null to avoid a false if skin1 is had since its stored as value 0
+            console.log("drawing player with skin " + player.skin);
             //get the skin url
-            var skinUrl = "/assets/skins/" + player.skin + ".png";
+            var skin = skins[player.skin];
             //draw the skin
-            ctx.drawImage(skinUrl, player.x, player.y);
-        }
-        else {*/
-        //draw outer box
-        ctx.fillStyle = player.color;
-        ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.drawImage(skin, player.x, player.y, player.width, player.height);
+        } else {
+            //draw outer box
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
 
-        // draw inner box
-        ctx.fillStyle = "white";
-        ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
-        //}
+            // draw inner box
+            ctx.fillStyle = "white";
+            ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
+        }
         // draw their population count
         ctx.fillStyle = "black";
         ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
@@ -679,7 +683,7 @@ var Player = function Player(hash, name, playerNum, skin) {
   // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
   // position 3 = vertical lane
   this.structures = [];
-  this.skin = skin; //has a string if the player equips a skin, otherwise null
+  this.skin = skin; //has an int if the player equips a skin, otherwise null
 
   var strPos = structure_positions[playerNum];
 
@@ -740,15 +744,15 @@ var onSkinUpdate = function onSkinUpdate(sock) {
                     prevEquipped[_i].classList.remove("equipped");
                 }
             }
-
             //set the skin to true in the skin array
-            socket.skin = data.skin;
+            socket.skin = data.number;
 
             //give the owned class to the skin element
             var skinElement = document.getElementById(data.skin); //the section containing the bought skin
             skinElement.classList.add("equipped");
 
             console.dir('equipped ' + data.skin);
+            console.log(skins[socket.skin]);
         } else {
             document.querySelector("#unsuccessfulEquip").style.display = "block";
         }
@@ -769,7 +773,7 @@ var setPlayers = function setPlayers() {
     for (var i = 0; i < keys.length; i++) {
         if (players[keys[i]]) continue;
         var user = users[keys[i]];
-        players[keys[i]] = new Player(user.hash, user.name, user.playerNum);
+        players[keys[i]] = new Player(user.hash, user.name, user.playerNum, user.skin);
     }
 };
 

@@ -198,6 +198,7 @@ const joinRoom = (sock, roomName) => {
     hostAttackStruct(socket);
     hostAttackCreate(socket);
     hostRoomUpdate(socket);
+    hostPurchaseStructure(socket);
 
 
     socket.hostSocket = socket;
@@ -323,10 +324,10 @@ const onSkins = (sock) => {
     // verify the skin is owned
     if (socket.skinArray[data.number]) {
       // set skin
-      socket.skin = data.skin;
+      socket.skin = data.number;
 
       // send message to the client that the skin was equipped
-      socket.emit(Messages.S_Equip_Skin, { skin: socket.skin, number: data.number, success: true });
+      socket.emit(Messages.S_Equip_Skin, { skin: data.skin, number: data.number, success: true });
     } else {
       // send message to the client that the skin wasnt equipped
       socket.emit(Messages.S_Equip_Skin, { skin: data.skin, number: data.number, success: false });

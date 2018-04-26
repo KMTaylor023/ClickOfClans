@@ -19,13 +19,14 @@ const redraw = () => {
     let halfHeight = playerHalfHeight;
     
     //draw player
-    /*if (player.skin){
+    if (player.skin != null){   //!= null to avoid a false if skin1 is had since its stored as value 0
+        console.log("drawing player with skin " + player.skin);
         //get the skin url
-        var skinUrl = "/assets/skins/" + player.skin + ".png";
+        var skin = skins[player.skin];
         //draw the skin
-        ctx.drawImage(skinUrl, player.x, player.y);
+        ctx.drawImage(skin, player.x, player.y, player.width, player.height);
     }
-    else {*/
+    else {
         //draw outer box
         ctx.fillStyle = player.color; 
         ctx.fillRect(player.x,player.y,player.width, player.height);
@@ -33,7 +34,7 @@ const redraw = () => {
         // draw inner box
         ctx.fillStyle = "white";
         ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
-    //}
+    }
     // draw their population count
     ctx.fillStyle = "black";
     ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  

@@ -141,7 +141,7 @@ class Player {
     // structures array: position 0 = horizontal lane, position 1 = diagonal lane,
     // position 3 = vertical lane
     this.structures = [];
-    this.skin = skin;       //has a string if the player equips a skin, otherwise null
+    this.skin = skin;       //has an int if the player equips a skin, otherwise null
     
     const strPos = structure_positions[playerNum];
     

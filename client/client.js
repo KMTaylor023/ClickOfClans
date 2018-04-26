@@ -15,6 +15,7 @@ let equipButton;    //click to equip a skin
 let skinButton;     //click to go to skin select
 let lobbyButton;    //click to go to the lobby
 let closeButton;    //close the error popup
+let skins = [];
 
 
 const client_showGame = () => {
@@ -170,13 +171,16 @@ const init = () => {
   closeButton.onclick = (e) => {
       document.querySelector("#unsuccessfulEquip").style.display = "none";
   };
+
+  //load the skin images
+  skins = document.getElementsByClassName("skin");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;
   
   //make sure ad isnt in the canvas
-  if (adPosition < 500) {
-      adPosition = 600;
+  if (adPosition < 704) {
+      adPosition = 800;
   }
     
   //move the ad
