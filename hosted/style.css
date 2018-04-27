@@ -33,6 +33,10 @@
     background-color: rgb(252,128,128);
 }
 
+.canvasImage {
+    display: none;
+}
+
 #unsuccessfulEquip{
     position: fixed;
     display: none;
