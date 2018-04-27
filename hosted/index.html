@@ -5,8 +5,9 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/assets/bundle.js"></script>
   </head>
+  <body>
     <img class = "ad" id= "ad1" src = "" />
-     <section id="lobby">
+     <section id="lobby" class="lobby">
       <section id="roomSelection">
           <input type="text" id="room_name_input" placeholder="Enter Room Name...">
           <button type="button" id="create_room_button">Create Room</button>
@@ -41,11 +42,11 @@
         <p>Couldn't equip selected skin, you don't own it</p>
         <button type="button" id="closeButton">Okay</button>
     </section>
+    
     <section id="game">
         <canvas id="canvas" height="704" width="704" style="border: 1px solid black;">Please use an HTML 5 browser</canvas>
         <div id="debug" style="display: none;">You are the host!</div>
     </section>
     <img class = "ad" id= "ad2" src = "" />
-  <body>
   </body>
 </html>
