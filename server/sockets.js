@@ -146,6 +146,13 @@ const hostRoomUpdate = (sock) => {
   });
 };
 
+const hostReadyUp = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.H_State_Change, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_State_Change, data);
+  });
+};
 
 // helper function to set a players playernum
 const setPlayerNum = (rm, sock) => {
@@ -199,7 +206,7 @@ const joinRoom = (sock, roomName) => {
     hostAttackCreate(socket);
     hostRoomUpdate(socket);
     hostPurchaseStructure(socket);
-
+    hostStateChange(socket);
 
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;
@@ -354,6 +361,11 @@ const setupSockets = (ioServer) => {
 
     socket.emit(Messages.S_SetUser, socket.hash);
     sendAds(socket);
+      
+    socket.on(Messages.C_Ready, () => {
+        //send the hash of the readied player to the host
+        socket.hostSocket.emit(Messages.H_Ready, socket.hash);
+    })
 
     socket.on(Messages.C_Currency_Click, () => {
       // send the hash of the clicking user to the room host
@@ -384,7 +396,6 @@ const setupSockets = (ioServer) => {
     socket.on(Messages.C_Purchase_Structure, (data) => {
       socket.hostSocket.emit(Messages.H_Purchase_Structure, data);
     });
-
 
     enterLobby(socket);
   });

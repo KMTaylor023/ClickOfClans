@@ -17,6 +17,8 @@ const Messages = Object.freeze({
   C_Get_Ads: 'c_ads',             //dispaly some ads
   C_Buy_Skin: 'c_buy',              //purchase a skin
   C_Equip_Skin: 'c_equip',          //equip a skin
+  C_State_Change: 'c_gameStateChange',  //update your gamestate
+  C_Ready: 'c_readyUp',             //tell the host you are ready to start
   //Host messages
   H_Player_Joined: 'h_addPlayer',   //a new player joined the server
   H_Player_Left: 'h_removePlayer',  //a player left the server
@@ -29,6 +31,8 @@ const Messages = Object.freeze({
   H_Attack_Hit: 'h_attackHit',          //a fired attack hit a target
   H_Become_Host: 'h_isHost',        //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate',     //use to send the game room info to the clients
+  H_State_Change: 'h_gameStateChange',  //game state chenged hostside
+  H_Ready: 'h_readyUp',             //update a player's ready state
   //Server messages
   S_Create_Room: 's_createRoom',     //server, make a room
   S_Disconnect: 'disconnect',        //disconnect from server

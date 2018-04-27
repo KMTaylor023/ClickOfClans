@@ -46,7 +46,27 @@ const onHosted = () => {
         users[data.hash] = data; 
         players[data.hash] = player;
         socket.emit(Messages.H_Room_Update,users);
+        //make sure everyone has the same game state
+        socket.emit(Messages.H_State_Change, gameState);
     });
+    
+    socket.on(Messages.H_Ready, (data) => {
+        //ready that player
+        players[data.hash].ready = true;
+        
+        //check if all players are ready
+        const keys = Object.keys(players); 
+        for(let i = 0; i < keys.length; i++) {
+            //if at least 1 player isnt ready, exit this method
+            if (!players[keys[i]].ready){
+                return;
+            }
+        }
+        
+        //all players are ready, update the game state
+        gameState = GameStates.GAME_PLAY;
+        socket.emit(Messages.H_State_Change, gameState);
+    })
     
     socket.on(Messages.H_Currency_Click, (hash) =>{
         users[hash].population += 1;

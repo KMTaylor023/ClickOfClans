@@ -9,14 +9,28 @@ let ctx;           //the canvas context
 let myHash;
 let myHost;
 let mouseClicked = false;   //is the mouse currently clicked?
-let animationFrame; // current animatino frame
+let animationFrame; // current animation frame
 let buyButton;      //click to buy a skin
 let equipButton;    //click to equip a skin
 let skinButton;     //click to go to skin select
 let lobbyButton;    //click to go to the lobby
 let closeButton;    //close the error popup
 let skins = [];
-
+let gameState;      //current game state
+let readyButton = {
+    x: 302,
+    y: 327,
+    width: 100,
+    height: 50,
+    image: null,
+};
+let leaveButton = {
+    x: 302,
+    y: 327,
+    width: 100,
+    height: 50,
+    image: null,
+};
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
@@ -43,55 +57,76 @@ const doMouseDown = (e) => {
     
     //make sure the player isnt clicking already
     if (!mouseClicked){
-        //get the keys
-        const keys = Object.keys(players);
-        
-        var myX =  players[myHash].x + playerHalfWidth;
-        var myY =  players[myHash].y + playerHalfHeight;
-
-        //check if the click was on any of the players
-        for (var i = 0; i < keys.length; i++){
-            var player = players[keys[i]];
-            
-            var posX = player.x;
-            var posY = player.y;
-            
-            //if the click was in the square, send it to the server for points;
-            if (mouse.x >= posX && mouse.x <= posX + player.width){
-                if (mouse.y >= posY && mouse.y <= posY + player.height){
-                    //check if player is you  
-                    if (myHash === player.hash){ 
-                        //send a currency click event 
-                        socket.emit(Messages.C_Currency_Click);
-                    }
-                    else{
-                        //send an attack click event 
-                        socket.emit(Messages.C_Attack_Click, 
-                        {originHash: myHash, targetHash: player.hash, x: myX, 
-                         y: myY, color: players[myHash].color});
-                    }
+        //check game state
+        if (gameState === GameStates.READY_UP){
+            //check if the player clicked the ready button
+            if (mouse.x >= readyButton.x && mouse.x <= readyButton.x + readyButton.width){
+                if (mouse.y >= readyButton.y && mouse.y <= readyButton.y + readyButton.height){
+                    //emit ready up event
+                    socket.emit(Messages.C_Ready);
+                    //readyButton.image = document.getElementById("readyPressed");
                 }
             }
-          
-          if(myHash === player.hash) {
-            for(var j = 0; j < 3; j++){
-              const struct = player.structures[j];
-              if(mouse.x >= struct.x && mouse.x <= struct.x + struct.width){
-                 if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height){
-                   const type = struct.type;
-                   
-                   struct.onClick(mouse.x - struct.x, struct);
-                   
-                   if(struct.type !== type){
-                     socket.emit(Messages.C_Purchase_Structure, {which: j, type: struct.type});
-                   }
-                 }
-              }
-            }
-          }
-          
         }
-        
+        else if (gameState === GameStates.GAME_OVER){
+            //check if the player clicked the leave button
+            if (mouse.x >= leaveButton.x && mouse.x <= leaveButton.x + leaveButton.width){
+                if (mouse.y >= leaveButton.y && mouse.y <= leaveButton.y + leaveButton.height){
+                    //emit leave room event
+                    socket.emit(Messages.C_Ready);
+                }
+            }
+        }
+        else{
+            //get the keys
+            const keys = Object.keys(players);
+
+            var myX =  players[myHash].x + playerHalfWidth;
+            var myY =  players[myHash].y + playerHalfHeight;
+
+            //check if the click was on any of the players
+            for (var i = 0; i < keys.length; i++){
+                var player = players[keys[i]];
+
+                var posX = player.x;
+                var posY = player.y;
+
+                //if the click was in the square, send it to the server for points;
+                if (mouse.x >= posX && mouse.x <= posX + player.width){
+                    if (mouse.y >= posY && mouse.y <= posY + player.height){
+                        //check if player is you  
+                        if (myHash === player.hash){ 
+                            //send a currency click event 
+                            socket.emit(Messages.C_Currency_Click);
+                        }
+                        else{
+                            //send an attack click event 
+                            socket.emit(Messages.C_Attack_Click, 
+                            {originHash: myHash, targetHash: player.hash, x: myX, 
+                             y: myY, color: players[myHash].color});
+                        }
+                    }
+                }
+
+              if(myHash === player.hash) {
+                for(var j = 0; j < 3; j++){
+                  const struct = player.structures[j];
+                  if(mouse.x >= struct.x && mouse.x <= struct.x + struct.width){
+                     if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height){
+                       const type = struct.type;
+
+                       struct.onClick(mouse.x - struct.x, struct);
+
+                       if(struct.type !== type){
+                         socket.emit(Messages.C_Purchase_Structure, {which: j, type: struct.type});
+                       }
+                     }
+                  }
+                }
+              }
+
+            }
+        }
     }
     
     //disable additional clicks
@@ -175,6 +210,10 @@ const init = () => {
   //load the skin images
   skins = document.getElementsByClassName("skin");
     
+  //load the button images
+  //readyButton.image = document.getElementById("ready");
+  //leaveButton.image = document.getElementById("leave");
+    
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;
   
@@ -185,6 +224,9 @@ const init = () => {
     
   //move the ad
   document.querySelector("#ad2").style.top = adPosition + "px";
+    
+  //initialize game state
+  gameState = GameStates.READY_UP;
     
   socket = io.connect();
   setupSocket(socket);

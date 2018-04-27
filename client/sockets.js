@@ -1,5 +1,6 @@
 /* ++++++ socket setup Functions ++++++ */
 
+//get ad info from the server
 const onAds = (sock) => {
     const socket = sock;
     
@@ -13,6 +14,7 @@ const onAds = (sock) => {
     });
 };
 
+//update skin info with info from the server
 const onSkinUpdate = (sock) => {
     const socket = sock;
     
@@ -94,6 +96,7 @@ const onRoomUpdate = (sock) => {
     
   socket.on(Messages.H_Become_Host, () =>
   {
+      gameState = GameStates.READY_UP;
       onHosted();
   });
 
@@ -106,6 +109,11 @@ const onRoomUpdate = (sock) => {
 //get the game updates from the host
 const onGameUpdate = (sock) => {
   const socket = sock;
+    
+  //results of a state change
+  socket.on(Messages.C_State_Change, (data) => {
+      gameState = data;
+  });
   
   //results of a currency click
   socket.on(Messages.C_Currency_Result, (data) => {

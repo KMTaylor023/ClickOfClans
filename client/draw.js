@@ -47,26 +47,35 @@ const redraw = () => {
     }
   }
    
-//get attacks
-const attackKeys = Object.keys(attacks);
+    //get attacks
+    const attackKeys = Object.keys(attacks);
 
-//if an amount of keys, draw the attacks
-if (attackKeys.length > 0){
-    //draw attacks
-    for(let i = 0; i < attackKeys.length; i++) {
-        let attack = attacks[attackKeys[i]];
+    //if an amount of keys, draw the attacks
+    if (attackKeys.length > 0){
+        //draw attacks
+        for(let i = 0; i < attackKeys.length; i++) {
+            let attack = attacks[attackKeys[i]];
 
-        if(attack.alpha < 1) attack.alpha += 0.05;
-        
-        //lerp
-        attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
-        attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+            if(attack.alpha < 1) attack.alpha += 0.05;
 
-        //draw
-        ctx.fillStyle = attack.color;
-        ctx.fillRect(attack.x - (attack.width/2), attack.y - (attack.height/2), attack.width, attack.height);
+            //lerp
+            attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
+            attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
+
+            //draw
+            ctx.fillStyle = attack.color;
+            ctx.fillRect(attack.x - (attack.width/2), attack.y - (attack.height/2), attack.width, attack.height);
+        }
     }
-  } 
+    
+    //if ready up, draw the readyup button
+    if (gameState === GameStates.READY_UP){
+        //ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
+    }
+    else if (gameState === GameStates.GAME_OVER){
+        //draw return to lobby button
+        //ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
+    }
    
 };
 

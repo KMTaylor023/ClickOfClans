@@ -142,6 +142,7 @@ class Player {
     // position 3 = vertical lane
     this.structures = [];
     this.skin = skin;       //has an int if the player equips a skin, otherwise null
+    this.ready = false;
     
     const strPos = structure_positions[playerNum];
     
