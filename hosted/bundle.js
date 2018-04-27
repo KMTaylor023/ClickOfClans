@@ -11,13 +11,28 @@ var ctx = void 0; //the canvas context
 var myHash = void 0;
 var myHost = void 0;
 var mouseClicked = false; //is the mouse currently clicked?
-var animationFrame = void 0; // current animatino frame
+var animationFrame = void 0; // current animation frame
 var buyButton = void 0; //click to buy a skin
 var equipButton = void 0; //click to equip a skin
 var skinButton = void 0; //click to go to skin select
 var lobbyButton = void 0; //click to go to the lobby
 var closeButton = void 0; //close the error popup
 var skins = [];
+var gameState = void 0; //current game state
+var readyButton = {
+    x: 302,
+    y: 327,
+    width: 100,
+    height: 50,
+    image: null
+};
+var leaveButton = {
+    x: 302,
+    y: 327,
+    width: 100,
+    height: 50,
+    image: null
+};
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -44,45 +59,65 @@ var doMouseDown = function doMouseDown(e) {
 
     //make sure the player isnt clicking already
     if (!mouseClicked) {
-        //get the keys
-        var keys = Object.keys(players);
-
-        var myX = players[myHash].x + playerHalfWidth;
-        var myY = players[myHash].y + playerHalfHeight;
-
-        //check if the click was on any of the players
-        for (var i = 0; i < keys.length; i++) {
-            var player = players[keys[i]];
-
-            var posX = player.x;
-            var posY = player.y;
-
-            //if the click was in the square, send it to the server for points;
-            if (mouse.x >= posX && mouse.x <= posX + player.width) {
-                if (mouse.y >= posY && mouse.y <= posY + player.height) {
-                    //check if player is you  
-                    if (myHash === player.hash) {
-                        //send a currency click event 
-                        socket.emit(Messages.C_Currency_Click);
-                    } else {
-                        //send an attack click event 
-                        socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
-                            y: myY, color: players[myHash].color });
-                    }
+        //check game state
+        if (gameState === GameStates.READY_UP) {
+            //check if the player clicked the ready button
+            if (mouse.x >= readyButton.x && mouse.x <= readyButton.x + readyButton.width) {
+                if (mouse.y >= readyButton.y && mouse.y <= readyButton.y + readyButton.height) {
+                    //emit ready up event
+                    socket.emit(Messages.C_Ready);
+                    readyButton.image = document.getElementById("readyPressed");
                 }
             }
+        } else if (gameState === GameStates.GAME_OVER) {
+            //check if the player clicked the leave button
+            if (mouse.x >= leaveButton.x && mouse.x <= leaveButton.x + leaveButton.width) {
+                if (mouse.y >= leaveButton.y && mouse.y <= leaveButton.y + leaveButton.height) {
+                    //emit leave room event
+                    socket.emit(Messages.C_Ready);
+                }
+            }
+        } else {
+            //get the keys
+            var keys = Object.keys(players);
 
-            if (myHash === player.hash) {
-                for (var j = 0; j < 3; j++) {
-                    var struct = player.structures[j];
-                    if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
-                        if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
-                            var type = struct.type;
+            var myX = players[myHash].x + playerHalfWidth;
+            var myY = players[myHash].y + playerHalfHeight;
 
-                            struct.onClick(mouse.x - struct.x, struct);
+            //check if the click was on any of the players
+            for (var i = 0; i < keys.length; i++) {
+                var player = players[keys[i]];
 
-                            if (struct.type !== type) {
-                                socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
+                var posX = player.x;
+                var posY = player.y;
+
+                //if the click was in the square, send it to the server for points;
+                if (mouse.x >= posX && mouse.x <= posX + player.width) {
+                    if (mouse.y >= posY && mouse.y <= posY + player.height) {
+                        //check if player is you  
+                        if (myHash === player.hash) {
+                            //send a currency click event 
+                            socket.emit(Messages.C_Currency_Click);
+                        } else {
+                            //send an attack click event 
+                            socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
+                                y: myY, color: players[myHash].color });
+                        }
+                    }
+                }
+
+                if (myHash === player.hash) {
+                    for (var j = 0; j < 3; j++) {
+                        var struct = player.structures[j];
+                        if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
+                            if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
+                                var type = struct.type;
+
+                                struct.onClick(mouse.x - struct.x, struct);
+
+                                if (struct.type !== type) {
+                                    socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
+                                }
                             }
                         }
                     }
@@ -172,6 +207,10 @@ var init = function init() {
     //load the skin images
     skins = document.getElementsByClassName("skin");
 
+    //load the button images
+    readyButton.image = document.getElementById("ready");
+    leaveButton.image = document.getElementById("leave");
+
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
 
@@ -182,6 +221,9 @@ var init = function init() {
 
     //move the ad
     document.querySelector("#ad2").style.top = adPosition + "px";
+
+    //initialize game state
+    gameState = GameStates.READY_UP;
 
     socket = io.connect();
     setupSocket(socket);
@@ -258,6 +300,14 @@ var redraw = function redraw() {
             ctx.fillRect(attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
         }
     }
+
+    //if ready up, draw the readyup button
+    if (gameState === GameStates.READY_UP) {
+        ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
+    } else if (gameState === GameStates.GAME_OVER) {
+        //draw return to lobby button
+        ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
+    }
 };
 
 var update = function update(time) {
@@ -265,6 +315,13 @@ var update = function update(time) {
 
     animationFrame = requestAnimationFrame(update);
 };
+"use strict";
+
+var GameStates = Object.freeze({
+    READY_UP: 1,
+    GAME_PLAY: 2,
+    GAME_OVER: 3
+});
 "use strict";
 
 var updateAttack = function updateAttack() {
@@ -305,6 +362,26 @@ var onHosted = function onHosted() {
         users[data.hash] = data;
         players[data.hash] = player;
         socket.emit(Messages.H_Room_Update, users);
+        //make sure everyone has the same game state
+        socket.emit(Messages.H_State_Change, gameState);
+    });
+
+    socket.on(Messages.H_Ready, function (data) {
+        //ready that player
+        players[data.hash].ready = true;
+
+        //check if all players are ready
+        var keys = Object.keys(players);
+        for (var i = 0; i < keys.length; i++) {
+            //if at least 1 player isnt ready, exit this method
+            if (!players[keys[i]].ready) {
+                return;
+            }
+        }
+
+        //all players are ready, update the game state
+        gameState = GameStates.GAME_PLAY;
+        socket.emit(Messages.H_State_Change, gameState);
     });
 
     socket.on(Messages.H_Currency_Click, function (hash) {
@@ -512,6 +589,8 @@ var Messages = Object.freeze({
   C_Get_Ads: 'c_ads', //dispaly some ads
   C_Buy_Skin: 'c_buy', //purchase a skin
   C_Equip_Skin: 'c_equip', //equip a skin
+  C_State_Change: 'c_gameStateChange', //update your gamestate
+  C_Ready: 'c_readyUp', //tell the host you are ready to start
   //Host messages
   H_Player_Joined: 'h_addPlayer', //a new player joined the server
   H_Player_Left: 'h_removePlayer', //a player left the server
@@ -524,6 +603,8 @@ var Messages = Object.freeze({
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
+  H_State_Change: 'h_gameStateChange', //game state chenged hostside
+  H_Ready: 'h_readyUp', //update a player's ready state
   //Server messages
   S_Create_Room: 's_createRoom', //server, make a room
   S_Disconnect: 'disconnect', //disconnect from server
@@ -684,6 +765,7 @@ var Player = function Player(hash, name, playerNum, skin) {
   // position 3 = vertical lane
   this.structures = [];
   this.skin = skin; //has an int if the player equips a skin, otherwise null
+  this.ready = false;
 
   var strPos = structure_positions[playerNum];
 
@@ -695,6 +777,7 @@ var Player = function Player(hash, name, playerNum, skin) {
 
 /* ++++++ socket setup Functions ++++++ */
 
+//get ad info from the server
 var onAds = function onAds(sock) {
     var socket = sock;
 
@@ -708,6 +791,7 @@ var onAds = function onAds(sock) {
     });
 };
 
+//update skin info with info from the server
 var onSkinUpdate = function onSkinUpdate(sock) {
     var socket = sock;
 
@@ -787,6 +871,7 @@ var onRoomUpdate = function onRoomUpdate(sock) {
     });
 
     socket.on(Messages.H_Become_Host, function () {
+        gameState = GameStates.READY_UP;
         onHosted();
     });
 
@@ -799,6 +884,11 @@ var onRoomUpdate = function onRoomUpdate(sock) {
 //get the game updates from the host
 var onGameUpdate = function onGameUpdate(sock) {
     var socket = sock;
+
+    //results of a state change
+    socket.on(Messages.C_State_Change, function (data) {
+        gameState = data;
+    });
 
     //results of a currency click
     socket.on(Messages.C_Currency_Result, function (data) {

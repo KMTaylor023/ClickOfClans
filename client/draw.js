@@ -70,11 +70,11 @@ const redraw = () => {
     
     //if ready up, draw the readyup button
     if (gameState === GameStates.READY_UP){
-        //ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
+        ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
     }
     else if (gameState === GameStates.GAME_OVER){
         //draw return to lobby button
-        //ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
+        ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
     }
    
 };
