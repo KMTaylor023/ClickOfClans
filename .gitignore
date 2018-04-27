@@ -54,5 +54,9 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+#unwanted stuff
+*.7z
+package-lock.json
+
 # dotenv environment variables file
 .env
