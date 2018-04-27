@@ -64,7 +64,7 @@ const doMouseDown = (e) => {
                 if (mouse.y >= readyButton.y && mouse.y <= readyButton.y + readyButton.height){
                     //emit ready up event
                     socket.emit(Messages.C_Ready);
-                    //readyButton.image = document.getElementById("readyPressed");
+                    readyButton.image = document.getElementById("readyPressed");
                 }
             }
         }
@@ -211,8 +211,8 @@ const init = () => {
   skins = document.getElementsByClassName("skin");
     
   //load the button images
-  //readyButton.image = document.getElementById("ready");
-  //leaveButton.image = document.getElementById("leave");
+  readyButton.image = document.getElementById("ready");
+  leaveButton.image = document.getElementById("leave");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;
