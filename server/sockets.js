@@ -146,7 +146,8 @@ const hostRoomUpdate = (sock) => {
   });
 };
 
-const hostReadyUp = (sock) => {
+//send new state to the players
+const hostStateChange = (sock) => {
   const socket = sock;
 
   socket.on(Messages.H_State_Change, (data) => {
