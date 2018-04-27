@@ -26,10 +26,19 @@
 }
 
 #lobby{
+    margin: 0 auto;
     text-align: center;
-    
+    height: 900px;
     width: 30%;
-    background-color: rgb(128,128,128,.75);
+    background-color: rgb(255,255,255,.75);
+}
+
+#roomSelection{
+    list-style: none;
+}
+
+ul{
+    list-style-type: none;
 }
 
 .owned{
@@ -71,7 +80,7 @@
     width: 700px;
 }
 
-body{
+.movingBG{
     background: url("../assets/sprites/Scroll.png") repeat;
     -webkit-animation: scrolling 2s linear infinite;
     -moz-animation: scrolling 2s linear infinite;
