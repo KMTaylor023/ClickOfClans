@@ -12,6 +12,12 @@ const roomStatus = [['room open!', 'room_open'],
 
 var lobbyList = {};
 
+var lobby_showLobby = () => {
+  document.querySelector("#game").style.display = "none";
+  document.querySelector("#lobby").style.display = "block";
+    
+  cancelAnimationFrame(animationFrame);
+}
 
 const joinRoom = (room) => {
   if(!room) return;

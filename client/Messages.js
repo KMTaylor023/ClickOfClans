@@ -14,6 +14,7 @@ const Messages = Object.freeze({
   C_Attack_Struct: 'c_attackStruct', // the host said a structure was hit
   C_Room_Update: 'c_roomUpdate',    //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer',  //a player left the server
+  C_Host_Left: 'c_hostLeft',  //a player left the server
   C_Get_Ads: 'c_ads',             //dispaly some ads
   C_Buy_Skin: 'c_buy',              //purchase a skin
   C_Equip_Skin: 'c_equip',          //equip a skin
@@ -37,6 +38,7 @@ const Messages = Object.freeze({
   S_Create_Room: 's_createRoom',     //server, make a room
   S_Disconnect: 'disconnect',        //disconnect from server
   S_Join: 'join',                    //server, I'm joining a room 
+  S_Leave: 'leave',                    //server, I'm leaving a room 
   S_SetUser: 's_setUser',
   S_Buy_Skin: 's_buy',              //was it a successful purchase?
   S_Equip_Skin: 's_equip',          //did you equip it?

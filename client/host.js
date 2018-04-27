@@ -67,6 +67,27 @@ const onHosted = () => {
         gameState = GameStates.GAME_PLAY;
         socket.emit(Messages.H_State_Change, gameState);
     })
+  
+    socket.on(Messages.H_Player_Left, (data) => {
+        delete users[data.hash];
+        delete players[data.hash]
+        
+        if(gameState === GameStates.READY_UP){
+            const keys = Object.keys(players); 
+            let ready = true;
+            for(let i = 0; i < keys.length; i++) {
+                //if at least 1 player isnt ready, exit this method
+                if (!players[keys[i]].ready){
+                    ready = false;;
+                }
+            }
+            
+            if(ready) {
+                gameState = GameStates.GAME_PLAY;
+                socket.emit(Messages.H_State_Change, gameState);
+            }
+        }
+    })
     
     socket.on(Messages.H_Currency_Click, (hash) =>{
         users[hash].population += 1;

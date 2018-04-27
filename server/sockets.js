@@ -146,7 +146,7 @@ const hostRoomUpdate = (sock) => {
   });
 };
 
-//send new state to the players
+// send new state to the players
 const hostStateChange = (sock) => {
   const socket = sock;
 
@@ -248,6 +248,9 @@ const leaveRoom = (sock) => {
 
     if (socket.host) {
       delete hosts[socket.hash];
+      io.sockets.in(socket.roomString).emit(Messages.C_Host_Left, {});
+      room.players = [];
+      room.full = true;
     } else {
       hosts[room.hostSocketHash].emit(Messages.H_Player_Left, { hash: socket.hash });
       io.sockets.in(socket.roomString).emit(Messages.C_Player_Left, { hash: socket.hash });
@@ -312,6 +315,14 @@ const onJoinRoom = (sock) => {
   });
 };
 
+const onLeaveRoom = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.S_Leave, () => {
+    leaveRoom(socket);
+  });
+};
+
 // on skin actions
 const onSkins = (sock) => {
   const socket = sock;
@@ -356,17 +367,18 @@ const setupSockets = (ioServer) => {
     defaultSocket(socket);
 
     onJoinRoom(socket);
+    onLeaveRoom(socket);
     onDisconnect(socket);
     onCreateRoom(socket);
     onSkins(socket);
 
     socket.emit(Messages.S_SetUser, socket.hash);
     sendAds(socket);
-      
+
     socket.on(Messages.C_Ready, () => {
-        //send the hash of the readied player to the host
-        socket.hostSocket.emit(Messages.H_Ready, socket.hash);
-    })
+      // send the hash of the readied player to the host
+      socket.hostSocket.emit(Messages.H_Ready, socket.hash);
+    });
 
     socket.on(Messages.C_Currency_Click, () => {
       // send the hash of the clicking user to the room host

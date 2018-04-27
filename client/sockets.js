@@ -101,8 +101,29 @@ const onRoomUpdate = (sock) => {
   });
 
   socket.on(Messages.S_SetUser, (hash, host) =>{
-     myHash = hash; 
-      myHost = host;
+  	 myHash = hash; 
+  	 myHost = host;
+  });
+  
+  socket.on(Messages.C_Player_Left, (data) => {
+      delete users[data.hash];
+      delete players[data.hash];
+      
+      const keys = Object.keys(attacks);
+      for(let i = 0; i < keys.length; i++) {
+        const atk = attacks[keys[i]];
+        if (data.hash === atk.originHash || data.hash === atk.targetHash)
+          delete attacks[keys[i]];
+      }
+  });
+    
+  socket.on(Messages.C_Host_Left, () => {
+      users = {};
+      players = {};
+      attacks = {};
+      
+      lobby_showLobby();
+      socket.emit(Messages.S_Leave, {});
   });
 };
 
@@ -135,10 +156,12 @@ const onGameUpdate = (sock) => {
       var attackDataKeys = Object.keys(attackData); 
       for(var i = 0; i < attackDataKeys.length; i++)
       { 
-          //  attacks[attackData[i].hash].alpha = 0.05;
-          attacks[attackData[i].hash].destX = attackData[i].x;
-          attacks[attackData[i].hash].destY = attackData[i].y;
-          attacks[attackData[i].hash].updateTick = attackData[i].tick;
+          if(attacks[attackData[i].hash]){
+            //  attacks[attackData[i].hash].alpha = 0.05;
+            attacks[attackData[i].hash].destX = attackData[i].x;
+            attacks[attackData[i].hash].destY = attackData[i].y;
+            attacks[attackData[i].hash].updateTick = attackData[i].tick;
+          }
       }
       
   });

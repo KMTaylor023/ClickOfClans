@@ -384,6 +384,27 @@ var onHosted = function onHosted() {
         socket.emit(Messages.H_State_Change, gameState);
     });
 
+    socket.on(Messages.H_Player_Left, function (data) {
+        delete users[data.hash];
+        delete players[data.hash];
+
+        if (gameState === GameStates.READY_UP) {
+            var keys = Object.keys(players);
+            var ready = true;
+            for (var i = 0; i < keys.length; i++) {
+                //if at least 1 player isnt ready, exit this method
+                if (!players[keys[i]].ready) {
+                    ready = false;;
+                }
+            }
+
+            if (ready) {
+                gameState = GameStates.GAME_PLAY;
+                socket.emit(Messages.H_State_Change, gameState);
+            }
+        }
+    });
+
     socket.on(Messages.H_Currency_Click, function (hash) {
         users[hash].population += 1;
         users[hash].lastUpdate = new Date().getTime();
@@ -427,6 +448,13 @@ var OVER = 3;
 var roomStatus = [['room open!', 'room_open'], ['room full!', 'room_full'], ['game started!', 'room_started'], ['game over!', 'room_over']];
 
 var lobbyList = {};
+
+var lobby_showLobby = function lobby_showLobby() {
+  document.querySelector("#game").style.display = "none";
+  document.querySelector("#lobby").style.display = "block";
+
+  cancelAnimationFrame(animationFrame);
+};
 
 var joinRoom = function joinRoom(room) {
   if (!room) return;
@@ -586,6 +614,7 @@ var Messages = Object.freeze({
   C_Attack_Struct: 'c_attackStruct', // the host said a structure was hit
   C_Room_Update: 'c_roomUpdate', //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer', //a player left the server
+  C_Host_Left: 'c_hostLeft', //a player left the server
   C_Get_Ads: 'c_ads', //dispaly some ads
   C_Buy_Skin: 'c_buy', //purchase a skin
   C_Equip_Skin: 'c_equip', //equip a skin
@@ -609,6 +638,7 @@ var Messages = Object.freeze({
   S_Create_Room: 's_createRoom', //server, make a room
   S_Disconnect: 'disconnect', //disconnect from server
   S_Join: 'join', //server, I'm joining a room 
+  S_Leave: 'leave', //server, I'm leaving a room 
   S_SetUser: 's_setUser',
   S_Buy_Skin: 's_buy', //was it a successful purchase?
   S_Equip_Skin: 's_equip' //did you equip it?
@@ -879,6 +909,26 @@ var onRoomUpdate = function onRoomUpdate(sock) {
         myHash = hash;
         myHost = host;
     });
+
+    socket.on(Messages.C_Player_Left, function (data) {
+        delete users[data.hash];
+        delete players[data.hash];
+
+        var keys = Object.keys(attacks);
+        for (var i = 0; i < keys.length; i++) {
+            var atk = attacks[keys[i]];
+            if (data.hash === atk.originHash || data.hash === atk.targetHash) delete attacks[keys[i]];
+        }
+    });
+
+    socket.on(Messages.C_Host_Left, function () {
+        users = {};
+        players = {};
+        attacks = {};
+
+        lobby_showLobby();
+        socket.emit(Messages.S_Leave, {});
+    });
 };
 
 //get the game updates from the host
@@ -909,10 +959,12 @@ var onGameUpdate = function onGameUpdate(sock) {
         var attackData = data;
         var attackDataKeys = Object.keys(attackData);
         for (var i = 0; i < attackDataKeys.length; i++) {
-            //  attacks[attackData[i].hash].alpha = 0.05;
-            attacks[attackData[i].hash].destX = attackData[i].x;
-            attacks[attackData[i].hash].destY = attackData[i].y;
-            attacks[attackData[i].hash].updateTick = attackData[i].tick;
+            if (attacks[attackData[i].hash]) {
+                //  attacks[attackData[i].hash].alpha = 0.05;
+                attacks[attackData[i].hash].destX = attackData[i].x;
+                attacks[attackData[i].hash].destY = attackData[i].y;
+                attacks[attackData[i].hash].updateTick = attackData[i].tick;
+            }
         }
     });
 
