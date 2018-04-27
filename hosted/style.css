@@ -25,6 +25,13 @@
     text-align: center;
 }
 
+#lobby{
+    text-align: center;
+    
+    width: 30%;
+    background-color: rgb(128,128,128,.75);
+}
+
 .owned{
     background-color: rgb(128,128,128);
 }
@@ -66,4 +73,21 @@
     top: 660px;
     height: 128px;
     width: 700px;
+}
+
+body{
+    background: url("../assets/sprites/Scroll.png") repeat;
+    -webkit-animation: scrolling 2s linear infinite;
+    -moz-animation: scrolling 2s linear infinite;
+    -o-animation: scrolling 2s linear infinite;
+    animation: scrolling 2s linear infinite;
+}
+
+@-webkit-keyframes scrolling {
+  from{
+      background-position: 0 0;
+  }
+  to{
+      background-position: 105% 105%;
+  }
 }
