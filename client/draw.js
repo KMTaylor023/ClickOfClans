@@ -1,3 +1,13 @@
+//sizes of the images to cut out from the main image
+const spriteSizes = {
+  PLAYER_WIDTH: 96,
+  PLAYER_HEIGHT: 96,
+  STRUCTURE_WIDTH: 64,
+  STRUCTURE_HEIGHT: 64,
+  UNSPAWNED_STRUCTURE_WIDTH: 96,
+  UNSPAWNED_STRUCTURE_HEIGHT: 96,
+};
+
 const lerp = (v0, v1, alpha) => {
   return (1 - alpha) * v0 + alpha * v1;
 };
@@ -25,25 +35,87 @@ const redraw = () => {
         var skin = skins[player.skin];
         //draw the skin
         ctx.drawImage(skin, player.x, player.y, player.width, player.height);
+        
+        // draw their population count
+        ctx.fillStyle = "blue";
+        ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100); 
     }
     else {
-        //draw outer box
-        ctx.fillStyle = player.color; 
-        ctx.fillRect(player.x,player.y,player.width, player.height);
-
-        // draw inner box
-        ctx.fillStyle = "white";
-        ctx.fillRect(player.x+5,player.y+5,player.width-10, player.height-10);
+        ctx.drawImage(
+          playerImage, 
+          spriteSizes.PLAYER_WIDTH * i,
+          0,
+          spriteSizes.PLAYER_WIDTH, 
+          spriteSizes.PLAYER_HEIGHT,
+          player.x, 
+          player.y, 
+          player.width, 
+          player.height
+        );
+        
+        // draw their population count
+        ctx.fillStyle = "black";
+        ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  
     }
-    // draw their population count
-    ctx.fillStyle = "black";
-    ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  
+    
     
     for(let j = 0; j < 3; j++){
       const str = player.structures[j];
       
-      ctx.fillStyle = str.color;
-      ctx.fillRect(str.x, str.y, str.width, str.height);
+      //check structure type
+      if (str.type === STRUCTURE_TYPES.PLACEHOLDER){
+          ctx.drawImage(
+              unbuiltStructureImage, 
+              spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i,
+              0,
+              spriteSizes.UNSPAWNED_STRUCTURE_WIDTH, 
+              spriteSizes.UNSPAWNED_STRUCTURE_HEIGHT,
+              str.x, 
+              str.y, 
+              str.width, 
+              str.height
+          );
+      }
+      else if (str.type === STRUCTURE_TYPES.FARM){
+          ctx.drawImage(
+              farmImage, 
+              spriteSizes.STRUCTURE_WIDTH * i,
+              0,
+              spriteSizes.STRUCTURE_WIDTH, 
+              spriteSizes.STRUCTURE_HEIGHT,
+              str.x, 
+              str.y, 
+              str.width, 
+              str.height
+          );
+      }
+      else if (str.type === STRUCTURE_TYPES.SHIELD){
+          ctx.drawImage(
+              shieldImage, 
+              spriteSizes.STRUCTURE_WIDTH * i,
+              0,
+              spriteSizes.STRUCTURE_WIDTH, 
+              spriteSizes.STRUCTURE_HEIGHT,
+              str.x, 
+              str.y, 
+              str.width, 
+              str.height
+          );
+      }
+      else{
+          ctx.drawImage(
+              blacksmithImage, 
+              spriteSizes.STRUCTURE_WIDTH * i,
+              0,
+              spriteSizes.STRUCTURE_WIDTH, 
+              spriteSizes.STRUCTURE_HEIGHT,
+              str.x, 
+              str.y, 
+              str.width, 
+              str.height
+          );
+      }
+      
     }
   }
    

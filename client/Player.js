@@ -71,9 +71,9 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
     if(xPos < struct.width / 3) {
       struct.setup(STRUCTURE_TYPES.SHIELD);
     } else if(xPos > 2 * (struct.width / 3)) {
-      struct.setup(STRUCTURE_TYPES.FARM);
-    } else {
       struct.setup(STRUCTURE_TYPES.BSMITH);
+    } else {
+      struct.setup(STRUCTURE_TYPES.FARM);
     }
   },
 };

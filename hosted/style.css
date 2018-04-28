@@ -70,10 +70,10 @@ ul{
 }
 
 #ad1{
-    float: right;
+    float: left;
     width: 128px;
     height: 500px;
-    padding-right: 50px;
+    padding-left: 20px;
 }
 
 #ad2{

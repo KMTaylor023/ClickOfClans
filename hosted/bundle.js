@@ -33,6 +33,11 @@ var leaveButton = {
     height: 50,
     image: null
 };
+var playerImage = void 0;
+var unbuiltStructureImage = void 0;
+var shieldImage = void 0;
+var farmImage = void 0;
+var blacksmithImage = void 0;
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -66,7 +71,7 @@ var doMouseDown = function doMouseDown(e) {
                 if (mouse.y >= readyButton.y && mouse.y <= readyButton.y + readyButton.height) {
                     //emit ready up event
                     socket.emit(Messages.C_Ready);
-                    readyButton.image = document.getElementById("readyPressed");
+                    readyButton.image = document.getElementById("readyPress");
                 }
             }
         } else if (gameState === GameStates.GAME_OVER) {
@@ -211,6 +216,13 @@ var init = function init() {
     readyButton.image = document.getElementById("ready");
     leaveButton.image = document.getElementById("leave");
 
+    //load the player images
+    playerImage = document.getElementById("playerImage");
+    unbuiltStructureImage = document.getElementById("createStructImage");
+    shieldImage = document.getElementById("shieldImage");
+    farmImage = document.getElementById("farmImage");
+    blacksmithImage = document.getElementById("attackImage");
+
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
 
@@ -231,6 +243,16 @@ var init = function init() {
 
 window.onload = init;
 "use strict";
+
+//sizes of the images to cut out from the main image
+var spriteSizes = {
+    PLAYER_WIDTH: 96,
+    PLAYER_HEIGHT: 96,
+    STRUCTURE_WIDTH: 64,
+    STRUCTURE_HEIGHT: 64,
+    UNSPAWNED_STRUCTURE_WIDTH: 96,
+    UNSPAWNED_STRUCTURE_HEIGHT: 96
+};
 
 var lerp = function lerp(v0, v1, alpha) {
     return (1 - alpha) * v0 + alpha * v1;
@@ -259,24 +281,31 @@ var redraw = function redraw() {
             var skin = skins[player.skin];
             //draw the skin
             ctx.drawImage(skin, player.x, player.y, player.width, player.height);
-        } else {
-            //draw outer box
-            ctx.fillStyle = player.color;
-            ctx.fillRect(player.x, player.y, player.width, player.height);
 
-            // draw inner box
-            ctx.fillStyle = "white";
-            ctx.fillRect(player.x + 5, player.y + 5, player.width - 10, player.height - 10);
+            // draw their population count
+            ctx.fillStyle = "blue";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+        } else {
+            ctx.drawImage(playerImage, spriteSizes.PLAYER_WIDTH * i, 0, spriteSizes.PLAYER_WIDTH, spriteSizes.PLAYER_HEIGHT, player.x, player.y, player.width, player.height);
+
+            // draw their population count
+            ctx.fillStyle = "black";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
         }
-        // draw their population count
-        ctx.fillStyle = "black";
-        ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
 
         for (var j = 0; j < 3; j++) {
             var str = player.structures[j];
 
-            ctx.fillStyle = str.color;
-            ctx.fillRect(str.x, str.y, str.width, str.height);
+            //check structure type
+            if (str.type === STRUCTURE_TYPES.PLACEHOLDER) {
+                ctx.drawImage(unbuiltStructureImage, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i, 0, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH, spriteSizes.UNSPAWNED_STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+            } else if (str.type === STRUCTURE_TYPES.FARM) {
+                ctx.drawImage(farmImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+            } else if (str.type === STRUCTURE_TYPES.SHIELD) {
+                ctx.drawImage(shieldImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+            } else {
+                ctx.drawImage(blacksmithImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+            }
         }
     }
 
@@ -368,20 +397,23 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Ready, function (data) {
         //ready that player
-        players[data.hash].ready = true;
+        players[data].ready = true;
 
         //check if all players are ready
         var keys = Object.keys(players);
-        for (var i = 0; i < keys.length; i++) {
-            //if at least 1 player isnt ready, exit this method
-            if (!players[keys[i]].ready) {
-                return;
+        if (keys.length > 1) {
+            //make sure the host doesnt start the game when alone
+            for (var i = 0; i < keys.length; i++) {
+                //if at least 1 player isnt ready, exit this method
+                if (!players[keys[i]].ready) {
+                    return;
+                }
             }
-        }
 
-        //all players are ready, update the game state
-        gameState = GameStates.GAME_PLAY;
-        socket.emit(Messages.H_State_Change, gameState);
+            //all players are ready, update the game state
+            gameState = GameStates.GAME_PLAY;
+            socket.emit(Messages.H_State_Change, gameState);
+        }
     });
 
     socket.on(Messages.H_Player_Left, function (data) {
@@ -414,25 +446,31 @@ var onHosted = function onHosted() {
     socket.on(Messages.H_Attack_Click, function (at) {
         attacks[at.hash] = at;
 
-        // set the moveX and the moveY of the attack
+        //make sure originplayer can afford to attack
         var originPlayer = players[at.originHash];
-        var oX = originPlayer.x + playerHalfWidth;
-        var oY = originPlayer.y + playerHalfHeight;
-        var destPlayer = players[at.targetHash];
-        var destX = destPlayer.x + playerHalfWidth;
-        var destY = destPlayer.y + playerHalfHeight;
+        if (originPlayer.population > 11) {
+            //make sure origin player cant spawn attacks that would bring them to negative population
+            originPlayer.population -= 10;
 
-        var moveX = (destX - oX) / 100;
-        var moveY = (destY - oY) / 100;
+            // set the moveX and the moveY of the attack
+            var oX = originPlayer.x + playerHalfWidth;
+            var oY = originPlayer.y + playerHalfHeight;
+            var destPlayer = players[at.targetHash];
+            var destX = destPlayer.x + playerHalfWidth;
+            var destY = destPlayer.y + playerHalfHeight;
 
-        attacks[at.hash].moveX = moveX;
-        attacks[at.hash].moveY = moveY;
+            var moveX = (destX - oX) / 100;
+            var moveY = (destY - oY) / 100;
 
-        // now get the lane we're in
-        if (moveX === 0) attacks[at.hash].lane = 2;else if (moveY === 0) attacks[at.hash].lane = 0;else attacks[at.hash].lane = 1;
+            attacks[at.hash].moveX = moveX;
+            attacks[at.hash].moveY = moveY;
 
-        // emit
-        socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
+            // now get the lane we're in
+            if (moveX === 0) attacks[at.hash].lane = 2;else if (moveY === 0) attacks[at.hash].lane = 0;else attacks[at.hash].lane = 1;
+
+            // emit
+            socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
+        }
     });
 
     socket.on(Messages.H_Purchase_Structure, function (data) {});
@@ -710,9 +748,9 @@ INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
     if (xPos < struct.width / 3) {
       struct.setup(STRUCTURE_TYPES.SHIELD);
     } else if (xPos > 2 * (struct.width / 3)) {
-      struct.setup(STRUCTURE_TYPES.FARM);
-    } else {
       struct.setup(STRUCTURE_TYPES.BSMITH);
+    } else {
+      struct.setup(STRUCTURE_TYPES.FARM);
     }
   }
 };

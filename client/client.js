@@ -31,6 +31,11 @@ let leaveButton = {
     height: 50,
     image: null,
 };
+let playerImage;
+let unbuiltStructureImage;
+let shieldImage;
+let farmImage;
+let blacksmithImage;
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
@@ -64,7 +69,7 @@ const doMouseDown = (e) => {
                 if (mouse.y >= readyButton.y && mouse.y <= readyButton.y + readyButton.height){
                     //emit ready up event
                     socket.emit(Messages.C_Ready);
-                    readyButton.image = document.getElementById("readyPressed");
+                    readyButton.image = document.getElementById("readyPress");
                 }
             }
         }
@@ -213,6 +218,13 @@ const init = () => {
   //load the button images
   readyButton.image = document.getElementById("ready");
   leaveButton.image = document.getElementById("leave");
+    
+  //load the player images
+  playerImage = document.getElementById("playerImage");
+  unbuiltStructureImage = document.getElementById("createStructImage");
+  shieldImage = document.getElementById("shieldImage");
+  farmImage = document.getElementById("farmImage");
+  blacksmithImage = document.getElementById("attackImage");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

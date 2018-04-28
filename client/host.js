@@ -52,21 +52,24 @@ const onHosted = () => {
     
     socket.on(Messages.H_Ready, (data) => {
         //ready that player
-        players[data.hash].ready = true;
+        players[data].ready = true;
         
         //check if all players are ready
         const keys = Object.keys(players); 
-        for(let i = 0; i < keys.length; i++) {
-            //if at least 1 player isnt ready, exit this method
-            if (!players[keys[i]].ready){
-                return;
+        if (keys.length > 1){   //make sure the host doesnt start the game when alone
+            for(let i = 0; i < keys.length; i++) {
+                //if at least 1 player isnt ready, exit this method
+                if (!players[keys[i]].ready){
+                    return;
+                }
             }
+
+            //all players are ready, update the game state
+            gameState = GameStates.GAME_PLAY;
+            socket.emit(Messages.H_State_Change, gameState);
         }
         
-        //all players are ready, update the game state
-        gameState = GameStates.GAME_PLAY;
-        socket.emit(Messages.H_State_Change, gameState);
-    })
+    });
   
     socket.on(Messages.H_Player_Left, (data) => {
         delete users[data.hash];
@@ -87,7 +90,7 @@ const onHosted = () => {
                 socket.emit(Messages.H_State_Change, gameState);
             }
         }
-    })
+    });
     
     socket.on(Messages.H_Currency_Click, (hash) =>{
         users[hash].population += 1;
@@ -98,33 +101,41 @@ const onHosted = () => {
     socket.on(Messages.H_Attack_Click, (at) => { 
         attacks[at.hash] = at;
         
-        // set the moveX and the moveY of the attack
+        //make sure originplayer can afford to attack
         var originPlayer = players[at.originHash];
-        var oX = originPlayer.x + playerHalfWidth;
-        var oY = originPlayer.y + playerHalfHeight;
-        var destPlayer = players[at.targetHash];
-        var destX = destPlayer.x + playerHalfWidth;
-        var destY = destPlayer.y + playerHalfHeight;
+        if (originPlayer.population > 11){
+            //make sure origin player cant spawn attacks that would bring them to negative population
+            originPlayer.population -= 10;  
 
-        var moveX = (destX - oX) / 100;
-        var moveY = (destY - oY) / 100;   
+            // set the moveX and the moveY of the attack
+            var oX = originPlayer.x + playerHalfWidth;
+            var oY = originPlayer.y + playerHalfHeight;
+            var destPlayer = players[at.targetHash];
+            var destX = destPlayer.x + playerHalfWidth;
+            var destY = destPlayer.y + playerHalfHeight;
+
+            var moveX = (destX - oX) / 100;
+            var moveY = (destY - oY) / 100;   
+
+            attacks[at.hash].moveX = moveX;
+            attacks[at.hash].moveY = moveY;
+
+            // now get the lane we're in
+            if(moveX === 0)
+                attacks[at.hash].lane = 2;
+            else if(moveY === 0)
+                attacks[at.hash].lane = 0;
+            else 
+                attacks[at.hash].lane = 1;
+
+            // emit
+            socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
+        }
         
-        attacks[at.hash].moveX = moveX;
-        attacks[at.hash].moveY = moveY;
         
-        // now get the lane we're in
-        if(moveX === 0)
-            attacks[at.hash].lane = 2;
-        else if(moveY === 0)
-            attacks[at.hash].lane = 0;
-        else 
-            attacks[at.hash].lane = 1;
-        
-        // emit
-        socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
     });
   
     socket.on(Messages.H_Purchase_Structure, (data) => {
       
-    })
+    });
 }
