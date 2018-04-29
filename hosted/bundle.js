@@ -33,6 +33,8 @@ var leaveButton = {
     height: 50,
     image: null
 };
+
+var selectedLotIndex = -1;
 var playerImage = void 0;
 var fieldBg = void 0;
 var unbuiltStructureImage = void 0;
@@ -40,6 +42,7 @@ var shieldImage = void 0;
 var farmImage = void 0;
 var blacksmithImage = void 0;
 var attackImage = void 0;
+var emptyLotImage = void 0;
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -92,6 +95,8 @@ var doMouseDown = function doMouseDown(e) {
             var myX = players[myHash].x + playerHalfWidth;
             var myY = players[myHash].y + playerHalfHeight;
 
+            var validClick = false;
+
             //check if the click was on any of the players
             for (var i = 0; i < keys.length; i++) {
                 var player = players[keys[i]];
@@ -102,15 +107,18 @@ var doMouseDown = function doMouseDown(e) {
                 //if the click was in the square, send it to the server for points;
                 if (mouse.x >= posX && mouse.x <= posX + player.width) {
                     if (mouse.y >= posY && mouse.y <= posY + player.height) {
+
+                        validClick = true;
                         //check if player is you  
                         if (myHash === player.hash) {
                             //send a currency click event 
                             socket.emit(Messages.C_Currency_Click);
                         } else {
-                            //send an attack click event 
+                            //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
                                 y: myY, color: players[myHash].color });
                         }
+                        selectedLotIndex = -1;
                     }
                 }
 
@@ -120,8 +128,16 @@ var doMouseDown = function doMouseDown(e) {
                         if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
                             if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
                                 var type = struct.type;
+                                validClick = true;
 
-                                struct.onClick(mouse.x - struct.x, struct);
+                                if (struct.type === STRUCTURE_TYPES.PLACEHOLDER) {
+                                    if (selectedLotIndex < 0 || selectedLotIndex != j) selectedLotIndex = j;else if (selectedLotIndex === j) {
+                                        struct.onClick(mouse.x - struct.x, struct);
+                                    }
+                                } else {
+                                    selectedLotIndex = -1;
+                                    struct.onClick(mouse.x - struct.x, struct);
+                                }
 
                                 if (struct.type !== type) {
                                     socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
@@ -130,6 +146,8 @@ var doMouseDown = function doMouseDown(e) {
                         }
                     }
                 }
+
+                if (!validClick) selectedLotIndex = -1;
             }
         }
     }
@@ -221,6 +239,7 @@ var init = function init() {
 
     //load the player images
     playerImage = document.getElementById("playerImage");
+    emptyLotImage = document.getElementById("emptyLotImage");
     unbuiltStructureImage = document.getElementById("createStructImage");
     shieldImage = document.getElementById("shieldImage");
     farmImage = document.getElementById("farmImage");
@@ -315,7 +334,12 @@ var redraw = function redraw() {
 
             //check structure type
             if (str.type === STRUCTURE_TYPES.PLACEHOLDER) {
-                ctx.drawImage(unbuiltStructureImage, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i, 0, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH, spriteSizes.UNSPAWNED_STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+                ctx.drawImage(emptyLotImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+
+                if (selectedLotIndex === j && player.hash === myHash) {
+                    console.log("Should be drawing rn");
+                    ctx.drawImage(unbuiltStructureImage, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i, 0, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH, spriteSizes.UNSPAWNED_STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+                }
             } else if (str.type === STRUCTURE_TYPES.FARM) {
                 ctx.drawImage(farmImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
             } else if (str.type === STRUCTURE_TYPES.SHIELD) {
@@ -341,10 +365,8 @@ var redraw = function redraw() {
             attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
             attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
-            //draw
-            //ctx.fillStyle = attack.color;
+            //draw 
             ctx.drawImage(attackImage, 32 * players[attack.originHash].playerNum, 0, 32, 32, attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
-            //ctx.fillRect(, attack.y - (attack.height/2), attack.width, attack.height);
         }
     }
 

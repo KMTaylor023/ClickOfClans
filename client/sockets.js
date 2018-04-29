@@ -194,6 +194,9 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Attack_Struct, (data) => {
       
       players[data.dest].structures[data.lane].health -= 50;
+      if (players[data.dest].structures[data.lane].health <= 0){
+          players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
+      }
       delete attacks[data.hash]; 
   });
 };
