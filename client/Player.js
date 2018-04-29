@@ -27,6 +27,7 @@ const INFO = {};
 //the stats for the farm
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
+  maxhealth: 50,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -39,6 +40,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 //the stats for the blacksmith
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
+  maxhealth: 100,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -51,6 +53,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 //the stats for the shield
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
+  maxhealth: 300,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -63,6 +66,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
 //the stats for the shield
 INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   health: 0,
+  maxhealth: 0,
   color: 'rgb(70,70,70)',
   popgen: 0,
   atkmult: 1,
@@ -99,6 +103,7 @@ class Structure {
     
     this.color = inf.color;
     this.health = inf.health;
+    this.maxhealth = inf.maxhealth;
     this.popgen = inf.popgen;
     this.atkmult = inf.atkmult;
     this.defmult = inf.defmult;

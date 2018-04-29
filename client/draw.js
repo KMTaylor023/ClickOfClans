@@ -54,7 +54,7 @@ const redraw = () => {
         
         // draw their population count
         ctx.save();
-        ctx.textAlign="center";
+        ctx.textAlign="center"; 
         ctx.fillStyle = "black";
         ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);
         ctx.restore();
@@ -70,7 +70,7 @@ const redraw = () => {
         ctx.fillRect(str.x+8, str.y + 32,48,48);
         ctx.fillStyle = "black"; 
         ctx.textAlign="center";
-        ctx.fillText(str.health,str.x+32,str.y+76,100);
+        ctx.fillText(str.health + "/" +  str.maxhealth,str.x+32,str.y+76,100);
         ctx.restore();
       }
         
@@ -147,8 +147,19 @@ const redraw = () => {
             attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
             //draw
-            ctx.fillStyle = attack.color;
-            ctx.fillRect(attack.x - (attack.width/2), attack.y - (attack.height/2), attack.width, attack.height);
+            //ctx.fillStyle = attack.color;
+            ctx.drawImage(
+                attackImage,
+                32 * players[attack.originHash].playerNum,
+                0,
+                32,
+                32,
+                attack.x - (attack.width/2),
+                attack.y - (attack.height/2),
+                attack.width,
+                attack.height
+            );
+            //ctx.fillRect(, attack.y - (attack.height/2), attack.width, attack.height);
         }
     }
     

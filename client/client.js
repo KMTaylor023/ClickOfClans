@@ -37,6 +37,7 @@ let unbuiltStructureImage;
 let shieldImage;
 let farmImage;
 let blacksmithImage;
+let attackImage;
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
@@ -227,6 +228,7 @@ const init = () => {
   farmImage = document.getElementById("farmImage");
   blacksmithImage = document.getElementById("attackImage");
   fieldBg = document.getElementById("field");
+  attackImage = document.getElementById("attacks");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

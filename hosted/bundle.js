@@ -39,6 +39,7 @@ var unbuiltStructureImage = void 0;
 var shieldImage = void 0;
 var farmImage = void 0;
 var blacksmithImage = void 0;
+var attackImage = void 0;
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -224,6 +225,7 @@ var init = function init() {
     farmImage = document.getElementById("farmImage");
     blacksmithImage = document.getElementById("attackImage");
     fieldBg = document.getElementById("field");
+    attackImage = document.getElementById("attacks");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -306,7 +308,7 @@ var redraw = function redraw() {
                 ctx.fillRect(str.x + 8, str.y + 32, 48, 48);
                 ctx.fillStyle = "black";
                 ctx.textAlign = "center";
-                ctx.fillText(str.health, str.x + 32, str.y + 76, 100);
+                ctx.fillText(str.health + "/" + str.maxhealth, str.x + 32, str.y + 76, 100);
                 ctx.restore();
             }
 
@@ -339,8 +341,9 @@ var redraw = function redraw() {
             attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
             //draw
-            ctx.fillStyle = attack.color;
-            ctx.fillRect(attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
+            //ctx.fillStyle = attack.color;
+            ctx.drawImage(attackImage, 32 * players[attack.originHash].playerNum, 0, 32, 32, attack.x - attack.width / 2, attack.y - attack.height / 2, attack.width, attack.height);
+            //ctx.fillRect(, attack.y - (attack.height/2), attack.width, attack.height);
         }
     }
 
@@ -724,6 +727,7 @@ var INFO = {};
 //the stats for the farm
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
+  maxhealth: 50,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -734,6 +738,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 //the stats for the blacksmith
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
+  maxhealth: 100,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -744,6 +749,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 //the stats for the shield
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
+  maxhealth: 300,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -754,6 +760,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
 //the stats for the shield
 INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   health: 0,
+  maxhealth: 0,
   color: 'rgb(70,70,70)',
   popgen: 0,
   atkmult: 1,
@@ -793,6 +800,7 @@ var Structure = function () {
 
       this.color = inf.color;
       this.health = inf.health;
+      this.maxhealth = inf.maxhealth;
       this.popgen = inf.popgen;
       this.atkmult = inf.atkmult;
       this.defmult = inf.defmult;
