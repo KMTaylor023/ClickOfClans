@@ -81,7 +81,8 @@ var doMouseDown = function doMouseDown(e) {
             if (mouse.x >= leaveButton.x && mouse.x <= leaveButton.x + leaveButton.width) {
                 if (mouse.y >= leaveButton.y && mouse.y <= leaveButton.y + leaveButton.height) {
                     //emit leave room event
-                    socket.emit(Messages.C_Ready);
+                    socket.emit(Messages.S_Leave);
+                    socket.isHost = false; //reset host status
                 }
             }
         } else {
@@ -394,11 +395,30 @@ var updateAttack = function updateAttack() {
     }
 
     socket.emit(Messages.H_Attack_Update, returnMe);
+
+    //determine number of dead players
+    if (gameState === GameStates.GAME_PLAY) {
+        var numDead = 0;
+        var keys = Object.keys(players);
+        for (var _i = 0; _i < keys.length; _i++) {
+            if (players[keys[_i]].dead) {
+                numDead++;
+            }
+        }
+
+        //if only 1 player lives, end the game
+        if (numDead === keys.length - 1) {
+            gameState = GameStates.GAME_OVER;
+            socket.emit(Messages.H_State_Change, gameState);
+        }
+    }
 };
 
 var onHosted = function onHosted() {
     document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack, 100);
+
+    socket.isHost = true;
 
     socket.on(Messages.H_Player_Joined, function (data) {
         // Add a new user 
@@ -461,18 +481,20 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
-        attacks[at.hash] = at;
 
-        //make sure originplayer can afford to attack
+        //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
-        if (originPlayer.population > 11) {
+        var destPlayer = players[at.targetHash];
+        if (originPlayer.population > 11 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
             originPlayer.population -= 10;
+
+            //store the attack
+            attacks[at.hash] = at;
 
             // set the moveX and the moveY of the attack
             var oX = originPlayer.x + playerHalfWidth;
             var oY = originPlayer.y + playerHalfHeight;
-            var destPlayer = players[at.targetHash];
             var destX = destPlayer.x + playerHalfWidth;
             var destY = destPlayer.y + playerHalfHeight;
 
@@ -855,7 +877,8 @@ var Player = function Player(hash, name, playerNum, skin) {
   // position 3 = vertical lane
   this.structures = [];
   this.skin = skin; //has an int if the player equips a skin, otherwise null
-  this.ready = false;
+  this.ready = false; //did the player ready up
+  this.dead = false; //did the player die?
 
   var strPos = structure_positions[playerNum];
 
@@ -1029,7 +1052,10 @@ var onGameUpdate = function onGameUpdate(sock) {
     });
 
     socket.on(Messages.C_Attack_Create, function (data) {
-        players[data.originHash].population -= 10;
+        //only subtract pop if not the host
+        if (!socket.isHost) {
+            players[data.originHash].population -= 10;
+        }
         users[data.originHash].population -= 10;
         attacks[data.hash] = data;
     });
@@ -1041,6 +1067,11 @@ var onGameUpdate = function onGameUpdate(sock) {
         var at = attacks[data.hash];
         players[at.targetHash].population -= 50;
         users[at.targetHash].population -= 50;
+
+        //check if the player died
+        if (players[at.targetHash].population <= 0) {
+            players[at.targetHash].dead = true;
+        }
         delete attacks[data.hash];
     });
 
@@ -1061,4 +1092,5 @@ var setupSocket = function setupSocket(sock) {
     onRoomUpdate(socket);
     onGameUpdate(socket);
     onSkinUpdate(socket);
+    socket.isHost = false; //initially not a host
 };

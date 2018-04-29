@@ -31,12 +31,30 @@ const updateAttack = () =>{
     }
     
     socket.emit(Messages.H_Attack_Update,returnMe);
-     
+    
+    //determine number of dead players
+    if (gameState === GameStates.GAME_PLAY){
+        let numDead = 0;
+        const keys = Object.keys(players); 
+        for(let i = 0; i < keys.length; i++) {
+            if (players[keys[i]].dead){
+                numDead++;
+            }
+        }
+
+        //if only 1 player lives, end the game
+        if (numDead === keys.length - 1){
+            gameState = GameStates.GAME_OVER;
+            socket.emit(Messages.H_State_Change, gameState);
+        }
+    }
 }
 
 const onHosted = () => { 
     document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack,100);
+    
+    socket.isHost = true;
     
     socket.on(Messages.H_Player_Joined, (data) => { 
         // Add a new user 
@@ -99,18 +117,21 @@ const onHosted = () => {
     });
     
     socket.on(Messages.H_Attack_Click, (at) => { 
-        attacks[at.hash] = at;
         
-        //make sure originplayer can afford to attack
+        
+        //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
-        if (originPlayer.population > 11){
+        var destPlayer = players[at.targetHash];
+        if (originPlayer.population > 11 && !destPlayer.dead){
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 10;  
+            originPlayer.population -= 10;
+            
+            //store the attack
+            attacks[at.hash] = at;
 
             // set the moveX and the moveY of the attack
             var oX = originPlayer.x + playerHalfWidth;
             var oY = originPlayer.y + playerHalfHeight;
-            var destPlayer = players[at.targetHash];
             var destX = destPlayer.x + playerHalfWidth;
             var destY = destPlayer.y + playerHalfHeight;
 

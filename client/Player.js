@@ -147,7 +147,8 @@ class Player {
     // position 3 = vertical lane
     this.structures = [];
     this.skin = skin;       //has an int if the player equips a skin, otherwise null
-    this.ready = false;
+    this.ready = false;     //did the player ready up
+    this.dead = false;      //did the player die?
     
     const strPos = structure_positions[playerNum];
     
