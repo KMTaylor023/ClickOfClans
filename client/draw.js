@@ -77,6 +77,21 @@ const redraw = () => {
       //check structure type
       if (str.type === STRUCTURE_TYPES.PLACEHOLDER){
           ctx.drawImage(
+              emptyLotImage, 
+              spriteSizes.STRUCTURE_WIDTH * i,
+              0,
+              spriteSizes.STRUCTURE_WIDTH, 
+              spriteSizes.STRUCTURE_HEIGHT,
+              str.x, 
+              str.y, 
+              str.width, 
+              str.height
+          );
+           
+          if(selectedLotIndex === j && player.hash === myHash)
+          {
+              console.log("Should be drawing rn");
+              ctx.drawImage(
               unbuiltStructureImage, 
               spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i,
               0,
@@ -86,7 +101,8 @@ const redraw = () => {
               str.y, 
               str.width, 
               str.height
-          );
+            );
+          }
       }
       else if (str.type === STRUCTURE_TYPES.FARM){
           ctx.drawImage(
@@ -146,8 +162,7 @@ const redraw = () => {
             attack.x = lerp(attack.prevX, attack.destX, attack.alpha);
             attack.y = lerp(attack.prevY, attack.destY, attack.alpha);
 
-            //draw
-            //ctx.fillStyle = attack.color;
+            //draw 
             ctx.drawImage(
                 attackImage,
                 32 * players[attack.originHash].playerNum,
@@ -158,8 +173,7 @@ const redraw = () => {
                 attack.y - (attack.height/2),
                 attack.width,
                 attack.height
-            );
-            //ctx.fillRect(, attack.y - (attack.height/2), attack.width, attack.height);
+            ); 
         }
     }
     

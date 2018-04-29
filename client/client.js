@@ -31,6 +31,8 @@ let leaveButton = {
     height: 50,
     image: null,
 };
+
+let selectedLotIndex = -1;
 let playerImage;
 let fieldBg;
 let unbuiltStructureImage;
@@ -38,6 +40,7 @@ let shieldImage;
 let farmImage;
 let blacksmithImage;
 let attackImage;
+let emptyLotImage;
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
@@ -90,6 +93,8 @@ const doMouseDown = (e) => {
 
             var myX =  players[myHash].x + playerHalfWidth;
             var myY =  players[myHash].y + playerHalfHeight;
+            
+            let validClick = false;
 
             //check if the click was on any of the players
             for (var i = 0; i < keys.length; i++){
@@ -101,17 +106,20 @@ const doMouseDown = (e) => {
                 //if the click was in the square, send it to the server for points;
                 if (mouse.x >= posX && mouse.x <= posX + player.width){
                     if (mouse.y >= posY && mouse.y <= posY + player.height){
+                        
+                        validClick = true;
                         //check if player is you  
                         if (myHash === player.hash){ 
                             //send a currency click event 
                             socket.emit(Messages.C_Currency_Click);
                         }
                         else{
-                            //send an attack click event 
+                            //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, 
                             {originHash: myHash, targetHash: player.hash, x: myX, 
                              y: myY, color: players[myHash].color});
                         }
+                        selectedLotIndex = -1;
                     }
                 }
 
@@ -121,9 +129,22 @@ const doMouseDown = (e) => {
                   if(mouse.x >= struct.x && mouse.x <= struct.x + struct.width){
                      if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height){
                        const type = struct.type;
-
-                       struct.onClick(mouse.x - struct.x, struct);
-
+                       validClick = true;
+                         
+                       if(struct.type === STRUCTURE_TYPES.PLACEHOLDER)
+                       {
+                           if(selectedLotIndex < 0 || selectedLotIndex != j)
+                               selectedLotIndex = j;
+                           else if(selectedLotIndex === j)
+                           { 
+                               struct.onClick(mouse.x - struct.x, struct);  
+                           }
+                       }else
+                       {
+                            selectedLotIndex = -1;
+                            struct.onClick(mouse.x - struct.x, struct);
+                       }
+                        
                        if(struct.type !== type){
                          socket.emit(Messages.C_Purchase_Structure, {which: j, type: struct.type});
                        }
@@ -131,8 +152,10 @@ const doMouseDown = (e) => {
                   }
                 }
               }
-
-            }
+                
+                if(!validClick)
+                    selectedLotIndex = -1;
+            } 
         }
     }
     
@@ -223,6 +246,7 @@ const init = () => {
     
   //load the player images
   playerImage = document.getElementById("playerImage");
+  emptyLotImage = document.getElementById("emptyLotImage");
   unbuiltStructureImage = document.getElementById("createStructImage");
   shieldImage = document.getElementById("shieldImage");
   farmImage = document.getElementById("farmImage");
