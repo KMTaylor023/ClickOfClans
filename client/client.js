@@ -83,7 +83,8 @@ const doMouseDown = (e) => {
             if (mouse.x >= leaveButton.x && mouse.x <= leaveButton.x + leaveButton.width){
                 if (mouse.y >= leaveButton.y && mouse.y <= leaveButton.y + leaveButton.height){
                     //emit leave room event
-                    socket.emit(Messages.C_Ready);
+                    socket.emit(Messages.S_Leave);
+                    socket.isHost = false;  //reset host status
                 }
             }
         }

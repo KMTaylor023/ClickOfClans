@@ -167,7 +167,10 @@ const onGameUpdate = (sock) => {
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
-     players[data.originHash].population -= 10;
+     //only subtract pop if not the host
+     if (!socket.isHost){
+         players[data.originHash].population -= 10;
+     }
      users[data.originHash].population -= 10;
      attacks[data.hash] = data; 
   });
@@ -179,6 +182,11 @@ const onGameUpdate = (sock) => {
       let at = attacks[data.hash];
       players[at.targetHash].population -= 50;
       users[at.targetHash].population -= 50;
+      
+      //check if the player died
+      if (players[at.targetHash].population <= 0){
+          players[at.targetHash].dead = true;
+      }
       delete attacks[data.hash]; 
   });
     
@@ -200,5 +208,6 @@ const setupSocket = (sock) => {
   onRoomUpdate(socket);
   onGameUpdate(socket);
   onSkinUpdate(socket);
+  socket.isHost = false;        //initially not a host
     
 }
