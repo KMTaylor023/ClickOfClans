@@ -34,6 +34,7 @@ var leaveButton = {
     image: null
 };
 var playerImage = void 0;
+var fieldBg = void 0;
 var unbuiltStructureImage = void 0;
 var shieldImage = void 0;
 var farmImage = void 0;
@@ -222,6 +223,7 @@ var init = function init() {
     shieldImage = document.getElementById("shieldImage");
     farmImage = document.getElementById("farmImage");
     blacksmithImage = document.getElementById("attackImage");
+    fieldBg = document.getElementById("field");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -262,8 +264,7 @@ var lerp = function lerp(v0, v1, alpha) {
 var redraw = function redraw() {
     //clear screen
     ctx.clearRect(0, 0, 704, 704);
-    ctx.fillStyle = "grey";
-    ctx.fillRect(0, 0, 704, 704);
+    ctx.drawImage(fieldBg, 0, 0, 704, 704, 0, 0, 704, 704);
 
     //draw players
     var keys = Object.keys(players);
@@ -289,12 +290,25 @@ var redraw = function redraw() {
             ctx.drawImage(playerImage, spriteSizes.PLAYER_WIDTH * i, 0, spriteSizes.PLAYER_WIDTH, spriteSizes.PLAYER_HEIGHT, player.x, player.y, player.width, player.height);
 
             // draw their population count
+            ctx.save();
+            ctx.textAlign = "center";
             ctx.fillStyle = "black";
             ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+            ctx.restore();
         }
 
         for (var j = 0; j < 3; j++) {
             var str = player.structures[j];
+
+            if (str.type != STRUCTURE_TYPES.PLACEHOLDER) {
+                ctx.save();
+                ctx.fillStyle = "white";
+                ctx.fillRect(str.x + 8, str.y + 32, 48, 48);
+                ctx.fillStyle = "black";
+                ctx.textAlign = "center";
+                ctx.fillText(str.health, str.x + 32, str.y + 76, 100);
+                ctx.restore();
+            }
 
             //check structure type
             if (str.type === STRUCTURE_TYPES.PLACEHOLDER) {

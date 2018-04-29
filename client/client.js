@@ -32,6 +32,7 @@ let leaveButton = {
     image: null,
 };
 let playerImage;
+let fieldBg;
 let unbuiltStructureImage;
 let shieldImage;
 let farmImage;
@@ -225,6 +226,7 @@ const init = () => {
   shieldImage = document.getElementById("shieldImage");
   farmImage = document.getElementById("farmImage");
   blacksmithImage = document.getElementById("attackImage");
+  fieldBg = document.getElementById("field");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

@@ -17,8 +17,7 @@ const lerp = (v0, v1, alpha) => {
 const redraw = () => { 
   //clear screen
   ctx.clearRect(0, 0, 704, 704);
-  ctx.fillStyle = "grey";
-  ctx.fillRect(0,0,704,704);
+  ctx.drawImage(fieldBg,0,0,704,704,0,0,704,704); 
   
   //draw players
   const keys = Object.keys(players); 
@@ -54,14 +53,27 @@ const redraw = () => {
         );
         
         // draw their population count
+        ctx.save();
+        ctx.textAlign="center";
         ctx.fillStyle = "black";
-        ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);  
+        ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100);
+        ctx.restore();
     }
     
     
     for(let j = 0; j < 3; j++){
       const str = player.structures[j];
       
+      if(str.type != STRUCTURE_TYPES.PLACEHOLDER){ 
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.fillRect(str.x+8, str.y + 32,48,48);
+        ctx.fillStyle = "black"; 
+        ctx.textAlign="center";
+        ctx.fillText(str.health,str.x+32,str.y+76,100);
+        ctx.restore();
+      }
+        
       //check structure type
       if (str.type === STRUCTURE_TYPES.PLACEHOLDER){
           ctx.drawImage(
