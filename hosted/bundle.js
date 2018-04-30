@@ -44,6 +44,7 @@ var blacksmithImage = void 0;
 var attackImage = void 0;
 var emptyLotImage = void 0;
 var pannelImage = void 0;
+var pannelImage2 = void 0;
 var winner = void 0; //hash of the player that won
 
 var client_showGame = function client_showGame() {
@@ -260,6 +261,7 @@ var init = function init() {
     fieldBg = document.getElementById("field");
     attackImage = document.getElementById("attacks");
     pannelImage = document.getElementById("pannels");
+    pannelImage2 = document.getElementById("pannels2");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -319,16 +321,20 @@ var redraw = function redraw() {
             ctx.drawImage(skin, player.x, player.y, player.width, player.height);
 
             // draw their population count
-            ctx.fillStyle = "blue";
-            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+            ctx.save();
+            ctx.fillStyle = "black";
+            ctx.font = "28px Do Hyeon";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10, 100);
+            ctx.restore();
         } else {
 
             // If it's you, put a nice tab over your castle that labels you as you
             if (player.hash === myHash) {
                 ctx.save();
-                ctx.drawImage(pannelImage, 32 * player.playerNum, 0, 64, 32, player.x + 16, player.y - 16, 64, 32);
+                ctx.drawImage(pannelImage, 64 * player.playerNum, 0, 64, 32, player.x + 16, player.y - 16, 64, 32);
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
+                ctx.font = "15px Do Hyeon";
                 ctx.fillText("YOU", player.x + 48, player.y - 4, 100);
                 ctx.restore();
             }
@@ -339,7 +345,8 @@ var redraw = function redraw() {
             ctx.save();
             ctx.textAlign = "center";
             ctx.fillStyle = "black";
-            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+            ctx.font = "28px Do Hyeon";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10, 100);
             ctx.restore();
         }
 
@@ -348,10 +355,11 @@ var redraw = function redraw() {
 
             if (str.type != STRUCTURE_TYPES.PLACEHOLDER) {
                 ctx.save();
-                ctx.fillStyle = "white";
-                ctx.fillRect(str.x + 8, str.y + 32, 48, 48);
+                ctx.drawImage(pannelImage2, 48 * player.playerNum, 0, 48, 48, str.x + 8, str.y + 32, 48, 48);
+
                 ctx.fillStyle = "black";
                 ctx.textAlign = "center";
+                ctx.font = "12px Do Hyeon";
                 ctx.fillText(str.health + "/" + str.maxhealth, str.x + 32, str.y + 76, 100);
                 ctx.restore();
             }
