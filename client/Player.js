@@ -131,7 +131,7 @@ class Player {
   constructor(hash, name, playerNum, skin) {
     this.hash = hash;
     this.name = name;
-    this.population = 0;
+    this.population = 50;
     this.lastUpdate = new Date().getTime();
     // not sure if we are doing hardset x/ys on host side,
     // setting x and y after object exists, or if we want to pass the x and y values in
