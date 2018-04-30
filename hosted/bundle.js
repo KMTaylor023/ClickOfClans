@@ -45,6 +45,8 @@ var attackImage = void 0;
 var emptyLotImage = void 0;
 var pannelImage = void 0;
 var pannelImage2 = void 0;
+var crownImage = void 0;
+var skullImage = void 0;
 var winner = void 0; //hash of the player that won
 
 var client_showGame = function client_showGame() {
@@ -262,6 +264,8 @@ var init = function init() {
     attackImage = document.getElementById("attacks");
     pannelImage = document.getElementById("pannels");
     pannelImage2 = document.getElementById("pannels2");
+    crownImage = document.getElementById("crown");
+    skullImage = document.getElementById("skull");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -350,6 +354,14 @@ var redraw = function redraw() {
             ctx.restore();
         }
 
+        //if the player is dead, draw skull over them
+        if (player.dead) {
+            ctx.save();
+            ctx.alpha = 0.7;
+            ctx.drawImage(skullImage, player.x, player.y, player.width, player.height);
+            ctx.restore();
+        }
+
         for (var j = 0; j < 3; j++) {
             var str = player.structures[j];
 
@@ -377,6 +389,12 @@ var redraw = function redraw() {
                 ctx.drawImage(shieldImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
             } else {
                 ctx.drawImage(blacksmithImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
+            }
+            if (player.dead) {
+                ctx.save();
+                ctx.alpha = 0.7;
+                ctx.drawImage(skullImage, str.x, str.y, str.width, str.height);
+                ctx.restore();
             }
         }
     }

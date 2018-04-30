@@ -43,6 +43,8 @@ let attackImage;
 let emptyLotImage;
 let pannelImage;
 let pannelImage2;
+let crownImage;
+let skullImage;
 let winner;     //hash of the player that won
 
 const client_showGame = () => {
@@ -267,7 +269,8 @@ const init = () => {
   attackImage = document.getElementById("attacks");
   pannelImage = document.getElementById("pannels");
   pannelImage2 = document.getElementById("pannels2");
-    
+  crownImage = document.getElementById("crown");
+  skullImage = document.getElementById("skull");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

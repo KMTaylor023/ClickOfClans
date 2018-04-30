@@ -85,6 +85,14 @@ const redraw = () => {
         ctx.restore();
     }
     
+    //if the player is dead, draw skull over them
+    if (player.dead){
+        ctx.save();
+        ctx.alpha = 0.7;
+        ctx.drawImage(skullImage, player.x, player.y, player.width, player.height);
+        ctx.restore();
+    }
+    
     
     for(let j = 0; j < 3; j++){
       const str = player.structures[j];
@@ -174,7 +182,12 @@ const redraw = () => {
               str.height
           );
       }
-      
+      if (player.dead){
+        ctx.save();
+        ctx.alpha = 0.7;
+        ctx.drawImage(skullImage, str.x, str.y, str.width, str.height);
+        ctx.restore();
+      }
     }
   }
    
