@@ -45,7 +45,7 @@ const redraw = () => {
         {
             ctx.save(); 
             ctx.drawImage(pannelImage,
-                          32 * player.playerNum,
+                          64 * player.playerNum,
                           0,
                           64,
                           32,
@@ -85,9 +85,15 @@ const redraw = () => {
       const str = player.structures[j];
       
       if(str.type != STRUCTURE_TYPES.PLACEHOLDER){ 
-        ctx.save();
-        ctx.fillStyle = "white";
-        ctx.fillRect(str.x+8, str.y + 32,48,48);
+        ctx.save(); 
+        ctx.drawImage(
+            pannelImage2,
+            48*player.playerNum,
+            0,48,48,
+            str.x+8,
+            str.y+32,
+            48,48);
+          
         ctx.fillStyle = "black"; 
         ctx.textAlign="center";
         ctx.fillText(str.health + "/" +  str.maxhealth,str.x+32,str.y+76,100);

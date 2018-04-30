@@ -42,6 +42,7 @@ let blacksmithImage;
 let attackImage;
 let emptyLotImage;
 let pannelImage;
+let pannelImage2;
 let winner;     //hash of the player that won
 
 const client_showGame = () => {
@@ -265,6 +266,7 @@ const init = () => {
   fieldBg = document.getElementById("field");
   attackImage = document.getElementById("attacks");
   pannelImage = document.getElementById("pannels");
+  pannelImage2 = document.getElementById("pannels2");
     
     
   //position ad2 at bottom of the screen
