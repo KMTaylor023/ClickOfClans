@@ -43,6 +43,7 @@ var farmImage = void 0;
 var blacksmithImage = void 0;
 var attackImage = void 0;
 var emptyLotImage = void 0;
+var pannelImage = void 0;
 var winner = void 0; //hash of the player that won
 
 var client_showGame = function client_showGame() {
@@ -105,6 +106,7 @@ var doMouseDown = function doMouseDown(e) {
 
             //check if the click was on any of the players
             for (var i = 0; i < keys.length; i++) {
+                //var validClick = false;
                 var player = players[keys[i]];
 
                 var posX = player.x;
@@ -137,23 +139,28 @@ var doMouseDown = function doMouseDown(e) {
                                 validClick = true;
 
                                 if (struct.type === STRUCTURE_TYPES.PLACEHOLDER) {
-                                    if (selectedLotIndex < 0 || selectedLotIndex != j) selectedLotIndex = j;else if (selectedLotIndex === j) {
-                                        struct.onClick(mouse.x - struct.x, struct);
-                                    }
+                                    // If you've clicked on another lot or you've just started clicking a lot, set the selectedLotIndex to that lot
+                                    if (selectedLotIndex < 0 || selectedLotIndex != j) {
+                                        selectedLotIndex = j;
+                                    } else if (selectedLotIndex === j) // If you've clicked on the same lot twice then you've purchased something
+                                        {
+                                            struct.onClick(mouse.x - struct.x, struct);
+                                            socket.emit(Messages.C_Purchase_Structure, { hash: myHash, which: j, type: struct.type });
+                                        }
                                 } else {
+                                    // if it's not a placeholder, reset the selectedLotIndex and run the onclick function
                                     selectedLotIndex = -1;
                                     struct.onClick(mouse.x - struct.x, struct);
-                                }
-
-                                if (struct.type !== type) {
-                                    socket.emit(Messages.C_Purchase_Structure, { which: j, type: struct.type });
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                if (!validClick) selectedLotIndex = -1;
+            // Reset the selected lot index if we didn't click on ANYTHING
+            if (!validClick) {
+                selectedLotIndex = -1;
             }
         }
     }
@@ -252,6 +259,7 @@ var init = function init() {
     blacksmithImage = document.getElementById("attackImage");
     fieldBg = document.getElementById("field");
     attackImage = document.getElementById("attacks");
+    pannelImage = document.getElementById("pannels");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -304,8 +312,7 @@ var redraw = function redraw() {
 
         //draw player
         if (player.skin != null) {
-            //!= null to avoid a false if skin1 is had since its stored as value 0
-            console.log("drawing player with skin " + player.skin);
+            //!= null to avoid a false if skin1 is had since its stored as value 0 
             //get the skin url
             var skin = skins[player.skin];
             //draw the skin
@@ -315,6 +322,17 @@ var redraw = function redraw() {
             ctx.fillStyle = "blue";
             ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
         } else {
+
+            // If it's you, put a nice tab over your castle that labels you as you
+            if (player.hash === myHash) {
+                ctx.save();
+                ctx.drawImage(pannelImage, 32 * player.playerNum, 0, 64, 32, player.x + 16, player.y - 16, 64, 32);
+                ctx.textAlign = "center";
+                ctx.fillStyle = "black";
+                ctx.fillText("YOU", player.x + 48, player.y - 4, 100);
+                ctx.restore();
+            }
+
             ctx.drawImage(playerImage, spriteSizes.PLAYER_WIDTH * i, 0, spriteSizes.PLAYER_WIDTH, spriteSizes.PLAYER_HEIGHT, player.x, player.y, player.width, player.height);
 
             // draw their population count
@@ -553,7 +571,9 @@ var onHosted = function onHosted() {
         }
     });
 
-    socket.on(Messages.H_Purchase_Structure, function (data) {});
+    socket.on(Messages.H_Purchase_Structure, function (data) {
+        socket.emit(Messages.H_Purchase_Structure_Result, data);
+    });
 };
 'use strict';
 
@@ -729,7 +749,8 @@ var Messages = Object.freeze({
   C_Error: 'c_err', //oh dear. theres been an error
   C_Currency_Click: 'c_currencyClick', //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult', //the host told me a currency click happened
-  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure
+  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure 
+  C_Purchase_Structure_Result: 'c_purchaseStructureResult',
   C_Attack_Click: 'c_attackClick', //Im firing an attack
   C_Attack_Update: 'c_attackResult', //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
@@ -752,6 +773,8 @@ var Messages = Object.freeze({
   H_Attack_Click: 'h_attackClick', //process an attack click
   H_Attack_Update: 'h_attackUpdate', //results of an attack click
   H_Attack_Create: 'h_attackCreate',
+  H_Purchase_Structure: 'h_purchaseStructure',
+  H_Purchase_Structure_Result: 'h_purchaseStructureResult',
   H_Attack_Struct: 'h_attackStruct', // when an attack hits a structure
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
@@ -1099,6 +1122,10 @@ var onGameUpdate = function onGameUpdate(sock) {
                 attacks[attackData[i].hash].updateTick = attackData[i].tick;
             }
         }
+    });
+
+    socket.on(Messages.C_Purchase_Structure_Result, function (data) {
+        players[data.hash].structures[data.which].setup(data.type);
     });
 
     socket.on(Messages.C_Attack_Create, function (data) {

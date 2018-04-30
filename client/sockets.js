@@ -168,6 +168,10 @@ const onGameUpdate = (sock) => {
       
   });
     
+  socket.on(Messages.C_Purchase_Structure_Result, (data) => { 
+      players[data.hash].structures[data.which].setup(data.type);
+  });
+    
   socket.on(Messages.C_Attack_Create, (data) => {
      //only subtract pop if not the host
      if (!socket.isHost){
