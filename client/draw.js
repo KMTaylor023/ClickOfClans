@@ -213,7 +213,7 @@ const redraw = () => {
         ctx.fillStyle = "white";
         ctx.fillRect(300, 200, 100, 40);
         ctx.fillStyle = "black";
-        ctx.font="30px Arial";
+        ctx.font="30px Do Hyeon";
         ctx.fillText("The winner is player " + winnerNum, 300, 230,100);
         ctx.restore();
         
