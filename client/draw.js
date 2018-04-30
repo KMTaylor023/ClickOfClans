@@ -224,16 +224,34 @@ const redraw = () => {
     //if ready up, draw the readyup button
     if (gameState === GameStates.READY_UP){
         ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
+        
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.fillStyle = "black";
+        ctx.font = "20px Do Hyeon";
+        ctx.fillText("Ready Up!",352,387,200);
+        ctx.restore();
     }
     else if (gameState === GameStates.GAME_OVER){
         //draw the winner
         let winnerNum = keys.indexOf(winner) + 1;
         ctx.save();
         ctx.fillStyle = "white";
-        ctx.fillRect(300, 200, 100, 40);
+        ctx.drawImage(
+            winnersBG,
+            200 * winnerNum,
+            0,
+            200,
+            60,
+            250,
+            250,
+            200,
+            60);
+        //ctx.fillRect(300, 200, 100, 40);
         ctx.fillStyle = "black";
         ctx.font="30px Do Hyeon";
-        ctx.fillText("The winner is player " + winnerNum, 300, 230,100);
+        ctx.textAlign = "center";
+        ctx.fillText("Player " + winnerNum + " wins!", 352, 280,250);
         ctx.restore();
         
         //draw return to lobby button

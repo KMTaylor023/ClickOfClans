@@ -18,10 +18,10 @@ let closeButton;    //close the error popup
 let skins = [];
 let gameState;      //current game state
 let readyButton = {
-    x: 302,
-    y: 327,
-    width: 100,
-    height: 50,
+    x: 280,
+    y: 304,
+    width: 144,
+    height: 96,
     image: null,
 };
 let leaveButton = {
@@ -45,6 +45,7 @@ let pannelImage;
 let pannelImage2;
 let crownImage;
 let skullImage;
+let winnersBG;
 let winner;     //hash of the player that won
 
 const client_showGame = () => {
@@ -271,6 +272,7 @@ const init = () => {
   pannelImage2 = document.getElementById("pannels2");
   crownImage = document.getElementById("crown");
   skullImage = document.getElementById("skull");
+  winnersBG = document.getElementById("winnersPannel");
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

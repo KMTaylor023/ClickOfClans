@@ -20,10 +20,10 @@ var closeButton = void 0; //close the error popup
 var skins = [];
 var gameState = void 0; //current game state
 var readyButton = {
-    x: 302,
-    y: 327,
-    width: 100,
-    height: 50,
+    x: 280,
+    y: 304,
+    width: 144,
+    height: 96,
     image: null
 };
 var leaveButton = {
@@ -47,6 +47,7 @@ var pannelImage = void 0;
 var pannelImage2 = void 0;
 var crownImage = void 0;
 var skullImage = void 0;
+var winnersBG = void 0;
 var winner = void 0; //hash of the player that won
 
 var client_showGame = function client_showGame() {
@@ -266,6 +267,7 @@ var init = function init() {
     pannelImage2 = document.getElementById("pannels2");
     crownImage = document.getElementById("crown");
     skullImage = document.getElementById("skull");
+    winnersBG = document.getElementById("winnersPannel");
 
     //position ad2 at bottom of the screen
     var adPosition = window.innerHeight - 140;
@@ -422,15 +424,24 @@ var redraw = function redraw() {
     //if ready up, draw the readyup button
     if (gameState === GameStates.READY_UP) {
         ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.fillStyle = "black";
+        ctx.font = "20px Do Hyeon";
+        ctx.fillText("Ready Up!", 352, 387, 200);
+        ctx.restore();
     } else if (gameState === GameStates.GAME_OVER) {
         //draw the winner
         var winnerNum = keys.indexOf(winner) + 1;
         ctx.save();
         ctx.fillStyle = "white";
-        ctx.fillRect(300, 200, 100, 40);
+        ctx.drawImage(winnersBG, 200 * winnerNum, 0, 200, 60, 250, 250, 200, 60);
+        //ctx.fillRect(300, 200, 100, 40);
         ctx.fillStyle = "black";
         ctx.font = "30px Do Hyeon";
-        ctx.fillText("The winner is player " + winnerNum, 300, 230, 100);
+        ctx.textAlign = "center";
+        ctx.fillText("Player " + winnerNum + " wins!", 352, 280, 250);
         ctx.restore();
 
         //draw return to lobby button
