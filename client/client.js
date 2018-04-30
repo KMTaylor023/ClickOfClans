@@ -70,6 +70,16 @@ const getMouse = (e) => {
     mouse.y = e.pageY - e.target.offsetTop;
     return mouse;
 }
+
+const getStructTypeBySelection = (pos) => {
+    if(pos < 64 / 3) {
+      return STRUCTURE_TYPES.SHIELD;
+    } else if(pos > 2 * (64 / 3)) {
+      return STRUCTURE_TYPES.BSMITH;
+    } else {
+      return STRUCTURE_TYPES.FARM;
+    }
+}
         
 //on click, check if a player was clicked
 const doMouseDown = (e) => {
@@ -109,8 +119,7 @@ const doMouseDown = (e) => {
             var  validClick = false;
 
             //check if the click was on any of the players
-            for (var i = 0; i < keys.length; i++){
-                //var validClick = false;
+            for (var i = 0; i < keys.length; i++){ 
                 var player = players[keys[i]];
 
                 var posX = player.x;
@@ -150,10 +159,21 @@ const doMouseDown = (e) => {
                            if(selectedLotIndex < 0 || selectedLotIndex != j){ 
                                selectedLotIndex = j; 
                            } else if(selectedLotIndex === j) // If you've clicked on the same lot twice then you've purchased something
-                           {  
-                               struct.onClick(mouse.x - struct.x, struct); 
-                               socket.emit(Messages.C_Purchase_Structure, {hash: myHash, which: j, type: struct.type});
-                           }
+                           {   
+                                var type = getStructTypeBySelection(mouse.x - struct.x);
+                               
+                                // check to see if you can purchase it
+                                if(INFO[type].cost <= players[myHash].population)
+                                {
+                                   struct.onClick(mouse.x - struct.x, struct); 
+                                   socket.emit(Messages.C_Purchase_Structure, {
+                                        hash: myHash, 
+                                        which: j,
+                                        cost: INFO[type].cost,
+                                        type: struct.type}); 
+                                }
+                                
+                            }
                        }else
                        { 
                             // if it's not a placeholder, reset the selectedLotIndex and run the onclick function

@@ -28,6 +28,7 @@ const INFO = {};
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
   maxhealth: 50,
+  cost: 15,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -41,6 +42,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
   maxhealth: 100,
+  cost: 20,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -54,6 +56,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
   maxhealth: 300,
+  cost: 20,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -67,6 +70,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
 INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   health: 0,
   maxhealth: 0,
+  cost: 0,
   color: 'rgb(70,70,70)',
   popgen: 0,
   atkmult: 1,

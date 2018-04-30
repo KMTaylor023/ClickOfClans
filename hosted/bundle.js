@@ -73,6 +73,16 @@ var getMouse = function getMouse(e) {
     return mouse;
 };
 
+var getStructTypeBySelection = function getStructTypeBySelection(pos) {
+    if (pos < 64 / 3) {
+        return STRUCTURE_TYPES.SHIELD;
+    } else if (pos > 2 * (64 / 3)) {
+        return STRUCTURE_TYPES.BSMITH;
+    } else {
+        return STRUCTURE_TYPES.FARM;
+    }
+};
+
 //on click, check if a player was clicked
 var doMouseDown = function doMouseDown(e) {
     //get location of mouse
@@ -110,7 +120,6 @@ var doMouseDown = function doMouseDown(e) {
 
             //check if the click was on any of the players
             for (var i = 0; i < keys.length; i++) {
-                //var validClick = false;
                 var player = players[keys[i]];
 
                 var posX = player.x;
@@ -139,7 +148,7 @@ var doMouseDown = function doMouseDown(e) {
                         var struct = player.structures[j];
                         if (mouse.x >= struct.x && mouse.x <= struct.x + struct.width) {
                             if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height) {
-                                var type = struct.type;
+                                var _type = struct.type;
                                 validClick = true;
 
                                 if (struct.type === STRUCTURE_TYPES.PLACEHOLDER) {
@@ -148,8 +157,17 @@ var doMouseDown = function doMouseDown(e) {
                                         selectedLotIndex = j;
                                     } else if (selectedLotIndex === j) // If you've clicked on the same lot twice then you've purchased something
                                         {
-                                            struct.onClick(mouse.x - struct.x, struct);
-                                            socket.emit(Messages.C_Purchase_Structure, { hash: myHash, which: j, type: struct.type });
+                                            var _type = getStructTypeBySelection(mouse.x - struct.x);
+
+                                            // check to see if you can purchase it
+                                            if (INFO[_type].cost <= players[myHash].population) {
+                                                struct.onClick(mouse.x - struct.x, struct);
+                                                socket.emit(Messages.C_Purchase_Structure, {
+                                                    hash: myHash,
+                                                    which: j,
+                                                    cost: INFO[_type].cost,
+                                                    type: struct.type });
+                                            }
                                         }
                                 } else {
                                     // if it's not a placeholder, reset the selectedLotIndex and run the onclick function
@@ -571,9 +589,9 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Currency_Click, function (hash) {
-        users[hash].population += 1;
-        users[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result, users[hash]);
+        players[hash].population += 1;
+        players[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result, players[hash]);
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
@@ -609,7 +627,8 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Purchase_Structure, function (data) {
-        socket.emit(Messages.H_Purchase_Structure_Result, data);
+        // Make sure the cost is right 
+        if (players[data.hash].population >= data.cost) socket.emit(Messages.H_Purchase_Structure_Result, data);
     });
 };
 'use strict';
@@ -858,6 +877,7 @@ var INFO = {};
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
   maxhealth: 50,
+  cost: 15,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -869,6 +889,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
   maxhealth: 100,
+  cost: 20,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -880,6 +901,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
   maxhealth: 300,
+  cost: 20,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -891,6 +913,7 @@ INFO[STRUCTURE_TYPES.SHIELD] = {
 INFO[STRUCTURE_TYPES.PLACEHOLDER] = {
   health: 0,
   maxhealth: 0,
+  cost: 0,
   color: 'rgb(70,70,70)',
   popgen: 0,
   atkmult: 1,
@@ -1163,6 +1186,7 @@ var onGameUpdate = function onGameUpdate(sock) {
 
     socket.on(Messages.C_Purchase_Structure_Result, function (data) {
         players[data.hash].structures[data.which].setup(data.type);
+        players[data.hash].population -= data.cost;
     });
 
     socket.on(Messages.C_Attack_Create, function (data) {

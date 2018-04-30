@@ -1,5 +1,4 @@
  
-
 const updateAttack = () =>{  
     var returnMe = {};
     
@@ -116,9 +115,9 @@ const onHosted = () => {
     });
     
     socket.on(Messages.H_Currency_Click, (hash) =>{
-        users[hash].population += 1;
-        users[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result,users[hash]);
+        players[hash].population += 1;
+        players[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result,players[hash]);
     });
     
     socket.on(Messages.H_Attack_Click, (at) => { 
@@ -162,6 +161,8 @@ const onHosted = () => {
     });
   
     socket.on(Messages.H_Purchase_Structure, (data) => {  
-      socket.emit(Messages.H_Purchase_Structure_Result,data);
+      // Make sure the cost is right 
+      if(players[data.hash].population >= data.cost) 
+        socket.emit(Messages.H_Purchase_Structure_Result,data);
     });
 }

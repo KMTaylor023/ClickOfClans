@@ -165,11 +165,11 @@ const onGameUpdate = (sock) => {
             attacks[attackData[i].hash].updateTick = attackData[i].tick;
           }
       }
-      
   });
     
   socket.on(Messages.C_Purchase_Structure_Result, (data) => { 
-      players[data.hash].structures[data.which].setup(data.type);
+      players[data.hash].structures[data.which].setup(data.type); 
+      players[data.hash].population -= data.cost;
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
