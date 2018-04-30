@@ -41,6 +41,7 @@ let farmImage;
 let blacksmithImage;
 let attackImage;
 let emptyLotImage;
+let winner;     //hash of the player that won
 
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";

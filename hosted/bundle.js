@@ -43,6 +43,7 @@ var farmImage = void 0;
 var blacksmithImage = void 0;
 var attackImage = void 0;
 var emptyLotImage = void 0;
+var winner = void 0; //hash of the player that won
 
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
@@ -378,6 +379,16 @@ var redraw = function redraw() {
     if (gameState === GameStates.READY_UP) {
         ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
     } else if (gameState === GameStates.GAME_OVER) {
+        //draw the winner
+        var winnerNum = keys.indexOf(winner) + 1;
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.fillRect(300, 200, 100, 40);
+        ctx.fillStyle = "black";
+        ctx.font = "30px Arial";
+        ctx.fillText("The winner is player " + winnerNum, 300, 230, 100);
+        ctx.restore();
+
         //draw return to lobby button
         ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
     }
@@ -425,10 +436,13 @@ var updateAttack = function updateAttack() {
     //determine number of dead players
     if (gameState === GameStates.GAME_PLAY) {
         var numDead = 0;
+        var potentialWinner = void 0; //hash of the potential winner. won't change if only 1 player alive
         var keys = Object.keys(players);
         for (var _i = 0; _i < keys.length; _i++) {
             if (players[keys[_i]].dead) {
                 numDead++;
+            } else {
+                potentialWinner = keys[_i];
             }
         }
 
@@ -436,6 +450,7 @@ var updateAttack = function updateAttack() {
         if (numDead === keys.length - 1) {
             gameState = GameStates.GAME_OVER;
             socket.emit(Messages.H_State_Change, gameState);
+            socket.emit(Messages.H_Winner, potentialWinner);
         }
     }
 };
@@ -728,6 +743,7 @@ var Messages = Object.freeze({
   C_Equip_Skin: 'c_equip', //equip a skin
   C_State_Change: 'c_gameStateChange', //update your gamestate
   C_Ready: 'c_readyUp', //tell the host you are ready to start
+  C_Winner: 'c_winner', //display the winner on the screen
   //Host messages
   H_Player_Joined: 'h_addPlayer', //a new player joined the server
   H_Player_Left: 'h_removePlayer', //a player left the server
@@ -742,6 +758,7 @@ var Messages = Object.freeze({
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
   H_State_Change: 'h_gameStateChange', //game state chenged hostside
   H_Ready: 'h_readyUp', //update a player's ready state
+  H_Winner: 'h_winner', //send the clients the player that won
   //Server messages
   S_Create_Room: 's_createRoom', //server, make a room
   S_Disconnect: 'disconnect', //disconnect from server
@@ -1074,7 +1091,9 @@ var onGameUpdate = function onGameUpdate(sock) {
         var attackDataKeys = Object.keys(attackData);
         for (var i = 0; i < attackDataKeys.length; i++) {
             if (attacks[attackData[i].hash]) {
-                //  attacks[attackData[i].hash].alpha = 0.05;
+                attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
+                attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
+                attacks[attackData[i].hash].alpha = 0.05;
                 attacks[attackData[i].hash].destX = attackData[i].x;
                 attacks[attackData[i].hash].destY = attackData[i].y;
                 attacks[attackData[i].hash].updateTick = attackData[i].tick;
@@ -1114,6 +1133,11 @@ var onGameUpdate = function onGameUpdate(sock) {
             players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
         }
         delete attacks[data.hash];
+    });
+
+    //get the hash of the winner
+    socket.on(Messages.C_Winner, function (data) {
+        winner = data;
     });
 };
 

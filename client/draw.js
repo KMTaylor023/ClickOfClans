@@ -181,6 +181,16 @@ const redraw = () => {
         ctx.drawImage(readyButton.image, readyButton.x, readyButton.y, readyButton.width, readyButton.height);
     }
     else if (gameState === GameStates.GAME_OVER){
+        //draw the winner
+        let winnerNum = keys.indexOf(winner) + 1;
+        ctx.save();
+        ctx.fillStyle = "white";
+        ctx.fillRect(300, 200, 100, 40);
+        ctx.fillStyle = "black";
+        ctx.font="30px Arial";
+        ctx.fillText("The winner is player " + winnerNum, 300, 230,100);
+        ctx.restore();
+        
         //draw return to lobby button
         ctx.drawImage(leaveButton.image, leaveButton.x, leaveButton.y, leaveButton.width, leaveButton.height);
     }

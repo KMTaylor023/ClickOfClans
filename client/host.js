@@ -35,10 +35,14 @@ const updateAttack = () =>{
     //determine number of dead players
     if (gameState === GameStates.GAME_PLAY){
         let numDead = 0;
+        let potentialWinner;        //hash of the potential winner. won't change if only 1 player alive
         const keys = Object.keys(players); 
         for(let i = 0; i < keys.length; i++) {
             if (players[keys[i]].dead){
                 numDead++;
+            }
+            else{
+                potentialWinner = keys[i];
             }
         }
 
@@ -46,6 +50,7 @@ const updateAttack = () =>{
         if (numDead === keys.length - 1){
             gameState = GameStates.GAME_OVER;
             socket.emit(Messages.H_State_Change, gameState);
+            socket.emit(Messages.H_Winner, potentialWinner);
         }
     }
 }

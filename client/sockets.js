@@ -201,6 +201,11 @@ const onGameUpdate = (sock) => {
       }
       delete attacks[data.hash]; 
   });
+    
+    //get the hash of the winner
+    socket.on(Messages.C_Winner, (data) => {
+        winner = data;
+    });
 };
 
 

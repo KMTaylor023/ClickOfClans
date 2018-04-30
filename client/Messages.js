@@ -20,6 +20,7 @@ const Messages = Object.freeze({
   C_Equip_Skin: 'c_equip',          //equip a skin
   C_State_Change: 'c_gameStateChange',  //update your gamestate
   C_Ready: 'c_readyUp',             //tell the host you are ready to start
+  C_Winner: 'c_winner',             //display the winner on the screen
   //Host messages
   H_Player_Joined: 'h_addPlayer',   //a new player joined the server
   H_Player_Left: 'h_removePlayer',  //a player left the server
@@ -34,6 +35,7 @@ const Messages = Object.freeze({
   H_Room_Update: 'h_roomUpdate',     //use to send the game room info to the clients
   H_State_Change: 'h_gameStateChange',  //game state chenged hostside
   H_Ready: 'h_readyUp',             //update a player's ready state
+  H_Winner: 'h_winner',             //send the clients the player that won
   //Server messages
   S_Create_Room: 's_createRoom',     //server, make a room
   S_Disconnect: 'disconnect',        //disconnect from server

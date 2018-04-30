@@ -155,6 +155,15 @@ const hostStateChange = (sock) => {
   });
 };
 
+// send winner to the players
+const hostEndGame = (sock) => {
+  const socket = sock;
+
+  socket.on(Messages.H_Winner, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Winner, data);
+  });
+};
+
 // helper function to set a players playernum
 const setPlayerNum = (rm, sock) => {
   const socket = sock;
@@ -208,6 +217,7 @@ const joinRoom = (sock, roomName) => {
     hostRoomUpdate(socket);
     hostPurchaseStructure(socket);
     hostStateChange(socket);
+    hostEndGame(socket);
 
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;
