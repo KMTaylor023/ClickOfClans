@@ -157,7 +157,9 @@ const onGameUpdate = (sock) => {
       for(var i = 0; i < attackDataKeys.length; i++)
       { 
           if(attacks[attackData[i].hash]){
-            //  attacks[attackData[i].hash].alpha = 0.05;
+            attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
+            attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
+            attacks[attackData[i].hash].alpha = 0.05;
             attacks[attackData[i].hash].destX = attackData[i].x;
             attacks[attackData[i].hash].destY = attackData[i].y;
             attacks[attackData[i].hash].updateTick = attackData[i].tick;
