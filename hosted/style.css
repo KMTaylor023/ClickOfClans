@@ -4,8 +4,9 @@
   font-family: 'Open Sans', sans-serif;
 }
 
- .canvas { 
-  border: 1px solid black; 
+ canvas {  
+  margin: auto;
+  text-align: center; 
 }
 
 #skins {
@@ -90,6 +91,10 @@ ul{
     -moz-animation: scrolling 2s linear infinite;
     -o-animation: scrolling 2s linear infinite;
     animation: scrolling 2s linear infinite;
+}
+
+.staticBG{
+    background: url("../assets/sprites/Scroll.png") repeat; 
 }
 
 @-webkit-keyframes scrolling {

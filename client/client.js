@@ -46,6 +46,11 @@ const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
   document.querySelector("#lobby").style.display = "none";
     
+  // Turn off the scrolling bg  
+  var body =   document.getElementsByTagName("BODY")[0];
+  body.classList.remove("movingBG");
+  body.classList.add("staticBG");    
+    
   animationFrame = requestAnimationFrame(update);
 }
 

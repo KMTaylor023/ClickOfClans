@@ -89,8 +89,7 @@ const redraw = () => {
           );
            
           if(selectedLotIndex === j && player.hash === myHash)
-          {
-              console.log("Should be drawing rn");
+          { 
               ctx.drawImage(
               unbuiltStructureImage, 
               spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i,

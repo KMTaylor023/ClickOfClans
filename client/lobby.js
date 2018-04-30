@@ -16,6 +16,11 @@ var lobby_showLobby = () => {
   document.querySelector("#game").style.display = "none";
   document.querySelector("#lobby").style.display = "block";
     
+  // Turn off the scrolling bg  
+  var body =   document.getElementsByTagName("BODY")[0];
+  body.classList.add("movingBG");
+  body.classList.remove("staticBG");      
+    
   cancelAnimationFrame(animationFrame);
 }
 

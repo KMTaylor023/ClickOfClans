@@ -48,6 +48,11 @@ var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
     document.querySelector("#lobby").style.display = "none";
 
+    // Turn off the scrolling bg  
+    var body = document.getElementsByTagName("BODY")[0];
+    body.classList.remove("movingBG");
+    body.classList.add("staticBG");
+
     animationFrame = requestAnimationFrame(update);
 };
 
@@ -337,7 +342,6 @@ var redraw = function redraw() {
                 ctx.drawImage(emptyLotImage, spriteSizes.STRUCTURE_WIDTH * i, 0, spriteSizes.STRUCTURE_WIDTH, spriteSizes.STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
 
                 if (selectedLotIndex === j && player.hash === myHash) {
-                    console.log("Should be drawing rn");
                     ctx.drawImage(unbuiltStructureImage, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH * i, 0, spriteSizes.UNSPAWNED_STRUCTURE_WIDTH, spriteSizes.UNSPAWNED_STRUCTURE_HEIGHT, str.x, str.y, str.width, str.height);
                 }
             } else if (str.type === STRUCTURE_TYPES.FARM) {
@@ -551,6 +555,11 @@ var lobbyList = {};
 var lobby_showLobby = function lobby_showLobby() {
   document.querySelector("#game").style.display = "none";
   document.querySelector("#lobby").style.display = "block";
+
+  // Turn off the scrolling bg  
+  var body = document.getElementsByTagName("BODY")[0];
+  body.classList.add("movingBG");
+  body.classList.remove("staticBG");
 
   cancelAnimationFrame(animationFrame);
 };
@@ -1101,6 +1110,9 @@ var onGameUpdate = function onGameUpdate(sock) {
     socket.on(Messages.C_Attack_Struct, function (data) {
 
         players[data.dest].structures[data.lane].health -= 50;
+        if (players[data.dest].structures[data.lane].health <= 0) {
+            players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
+        }
         delete attacks[data.hash];
     });
 };
