@@ -28,8 +28,7 @@ const redraw = () => {
     let halfHeight = playerHalfHeight;
     
     //draw player
-    if (player.skin != null){   //!= null to avoid a false if skin1 is had since its stored as value 0
-        console.log("drawing player with skin " + player.skin);
+    if (player.skin != null){   //!= null to avoid a false if skin1 is had since its stored as value 0 
         //get the skin url
         var skin = skins[player.skin];
         //draw the skin
@@ -40,6 +39,27 @@ const redraw = () => {
         ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight,100); 
     }
     else {
+        
+        // If it's you, put a nice tab over your castle that labels you as you
+        if(player.hash === myHash)
+        {
+            ctx.save(); 
+            ctx.drawImage(pannelImage,
+                          32 * player.playerNum,
+                          0,
+                          64,
+                          32,
+                          player.x + 16,
+                          player.y - 16,
+                          64,
+                          32);
+            ctx.textAlign = "center";
+            ctx.fillStyle = "black";
+            ctx.fillText("YOU",player.x + 48, player.y-4,100);
+            ctx.restore();
+        }
+        
+        
         ctx.drawImage(
           playerImage, 
           spriteSizes.PLAYER_WIDTH * i,

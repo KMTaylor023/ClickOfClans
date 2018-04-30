@@ -41,6 +41,7 @@ let farmImage;
 let blacksmithImage;
 let attackImage;
 let emptyLotImage;
+let pannelImage;
 let winner;     //hash of the player that won
 
 const client_showGame = () => {
@@ -101,10 +102,11 @@ const doMouseDown = (e) => {
             var myX =  players[myHash].x + playerHalfWidth;
             var myY =  players[myHash].y + playerHalfHeight;
             
-            let validClick = false;
+            var  validClick = false;
 
             //check if the click was on any of the players
             for (var i = 0; i < keys.length; i++){
+                //var validClick = false;
                 var player = players[keys[i]];
 
                 var posX = player.x;
@@ -136,33 +138,35 @@ const doMouseDown = (e) => {
                   if(mouse.x >= struct.x && mouse.x <= struct.x + struct.width){
                      if (mouse.y >= struct.y && mouse.y <= struct.y + struct.height){
                        const type = struct.type;
-                       validClick = true;
+                       validClick = true; 
                          
                        if(struct.type === STRUCTURE_TYPES.PLACEHOLDER)
-                       {
-                           if(selectedLotIndex < 0 || selectedLotIndex != j)
-                               selectedLotIndex = j;
-                           else if(selectedLotIndex === j)
-                           { 
-                               struct.onClick(mouse.x - struct.x, struct);  
+                       { 
+                           // If you've clicked on another lot or you've just started clicking a lot, set the selectedLotIndex to that lot
+                           if(selectedLotIndex < 0 || selectedLotIndex != j){ 
+                               selectedLotIndex = j; 
+                           } else if(selectedLotIndex === j) // If you've clicked on the same lot twice then you've purchased something
+                           {  
+                               struct.onClick(mouse.x - struct.x, struct); 
+                               socket.emit(Messages.C_Purchase_Structure, {hash: myHash, which: j, type: struct.type});
                            }
                        }else
-                       {
+                       { 
+                            // if it's not a placeholder, reset the selectedLotIndex and run the onclick function
                             selectedLotIndex = -1;
                             struct.onClick(mouse.x - struct.x, struct);
                        }
-                        
-                       if(struct.type !== type){
-                         socket.emit(Messages.C_Purchase_Structure, {which: j, type: struct.type});
-                       }
+                       
                      }
                   }
                 }
-              }
-                
-                if(!validClick)
-                    selectedLotIndex = -1;
-            } 
+              } 
+            }
+            
+            // Reset the selected lot index if we didn't click on ANYTHING
+            if(!validClick){ 
+                selectedLotIndex = -1;
+            }
         }
     }
     
@@ -260,6 +264,8 @@ const init = () => {
   blacksmithImage = document.getElementById("attackImage");
   fieldBg = document.getElementById("field");
   attackImage = document.getElementById("attacks");
+  pannelImage = document.getElementById("pannels");
+    
     
   //position ad2 at bottom of the screen
   var adPosition = window.innerHeight - 140;

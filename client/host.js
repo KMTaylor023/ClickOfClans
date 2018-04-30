@@ -161,7 +161,7 @@ const onHosted = () => {
         
     });
   
-    socket.on(Messages.H_Purchase_Structure, (data) => {
-      
+    socket.on(Messages.H_Purchase_Structure, (data) => {  
+      socket.emit(Messages.H_Purchase_Structure_Result,data);
     });
 }

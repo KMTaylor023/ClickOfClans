@@ -126,6 +126,10 @@ const hostPurchaseStructure = (sock) => {
   socket.on(Messages.H_Purchase_Structure, (data) => {
     io.sockets.in(socket.roomString).emit(Messages.H_Purchase_Structure, data);
   });
+
+  socket.on(Messages.H_Purchase_Structure_Result, (data) => { 
+    io.sockets.in(socket.roomString).emit(Messages.C_Purchase_Structure_Result, data);
+  });
 };
 
 // send the host processed data from an attack hit event to the whole room

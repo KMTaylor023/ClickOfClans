@@ -6,7 +6,8 @@ const Messages = Object.freeze({
   C_Error: 'c_err',     //oh dear. theres been an error
   C_Currency_Click: 'c_currencyClick',      //I'm clicking for $$$$
   C_Currency_Result: 'c_currencyResult',    //the host told me a currency click happened
-  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure
+  C_Purchase_Structure: 'c_purchaseStructure', //buy a structure 
+  C_Purchase_Structure_Result: 'c_purchaseStructureResult',
   C_Attack_Click: 'c_attackClick',      //Im firing an attack
   C_Attack_Update: 'c_attackResult',    //the host told me an attack fired
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
@@ -29,6 +30,8 @@ const Messages = Object.freeze({
   H_Attack_Click: 'h_attackClick',      //process an attack click
   H_Attack_Update: 'h_attackUpdate',    //results of an attack click
   H_Attack_Create: 'h_attackCreate',
+  H_Purchase_Structure: 'h_purchaseStructure', 
+  H_Purchase_Structure_Result: 'h_purchaseStructureResult', 
   H_Attack_Struct: 'h_attackStruct', // when an attack hits a structure
   H_Attack_Hit: 'h_attackHit',          //a fired attack hit a target
   H_Become_Host: 'h_isHost',        //hey dude, thanks for hosting
