@@ -321,8 +321,11 @@ var redraw = function redraw() {
             ctx.drawImage(skin, player.x, player.y, player.width, player.height);
 
             // draw their population count
-            ctx.fillStyle = "blue";
-            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+            ctx.save();
+            ctx.fillStyle = "black";
+            ctx.font = "28px Do Hyeon";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10, 100);
+            ctx.restore();
         } else {
 
             // If it's you, put a nice tab over your castle that labels you as you
@@ -331,6 +334,7 @@ var redraw = function redraw() {
                 ctx.drawImage(pannelImage, 64 * player.playerNum, 0, 64, 32, player.x + 16, player.y - 16, 64, 32);
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
+                ctx.font = "15px Do Hyeon";
                 ctx.fillText("YOU", player.x + 48, player.y - 4, 100);
                 ctx.restore();
             }
@@ -341,7 +345,8 @@ var redraw = function redraw() {
             ctx.save();
             ctx.textAlign = "center";
             ctx.fillStyle = "black";
-            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight, 100);
+            ctx.font = "28px Do Hyeon";
+            ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10, 100);
             ctx.restore();
         }
 
@@ -354,6 +359,7 @@ var redraw = function redraw() {
 
                 ctx.fillStyle = "black";
                 ctx.textAlign = "center";
+                ctx.font = "12px Do Hyeon";
                 ctx.fillText(str.health + "/" + str.maxhealth, str.x + 32, str.y + 76, 100);
                 ctx.restore();
             }
