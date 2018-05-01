@@ -48,6 +48,7 @@ let skullImage;
 let winnersBG;
 let winner;     //hash of the player that won
 
+//show the canvas
 const client_showGame = () => {
   document.querySelector("#game").style.display = "block";
   document.querySelector("#lobby").style.display = "none";
@@ -71,6 +72,7 @@ const getMouse = (e) => {
     return mouse;
 }
 
+//determine struct type to build
 const getStructTypeBySelection = (pos) => {
     if(pos < 64 / 3) {
       return STRUCTURE_TYPES.SHIELD;

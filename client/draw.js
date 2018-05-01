@@ -8,6 +8,7 @@ const spriteSizes = {
   UNSPAWNED_STRUCTURE_HEIGHT: 96,
 };
 
+//lerp the attack sprites
 const lerp = (v0, v1, alpha) => {
   return (1 - alpha) * v0 + alpha * v1;
 };
@@ -260,6 +261,7 @@ const redraw = () => {
    
 };
 
+//update the screen
 const update = (time) => {
     redraw(); 
     

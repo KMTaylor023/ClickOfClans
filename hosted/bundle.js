@@ -50,6 +50,7 @@ var skullImage = void 0;
 var winnersBG = void 0;
 var winner = void 0; //hash of the player that won
 
+//show the canvas
 var client_showGame = function client_showGame() {
     document.querySelector("#game").style.display = "block";
     document.querySelector("#lobby").style.display = "none";
@@ -73,6 +74,7 @@ var getMouse = function getMouse(e) {
     return mouse;
 };
 
+//determine struct type to build
 var getStructTypeBySelection = function getStructTypeBySelection(pos) {
     if (pos < 64 / 3) {
         return STRUCTURE_TYPES.SHIELD;
@@ -318,6 +320,7 @@ var spriteSizes = {
     UNSPAWNED_STRUCTURE_HEIGHT: 96
 };
 
+//lerp the attack sprites
 var lerp = function lerp(v0, v1, alpha) {
     return (1 - alpha) * v0 + alpha * v1;
 };
@@ -467,6 +470,7 @@ var redraw = function redraw() {
     }
 };
 
+//update the screen
 var update = function update(time) {
     redraw();
 
@@ -481,6 +485,7 @@ var GameStates = Object.freeze({
 });
 "use strict";
 
+//update attacks on the screen
 var updateAttack = function updateAttack() {
     var returnMe = {};
 
@@ -528,6 +533,7 @@ var updateAttack = function updateAttack() {
     }
 };
 
+//host socket listeners
 var onHosted = function onHosted() {
     document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack, 100);
@@ -595,7 +601,6 @@ var onHosted = function onHosted() {
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
-
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
@@ -628,7 +633,8 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Purchase_Structure, function (data) {
         // Make sure the cost is right 
-        if (players[data.hash].population >= data.cost) socket.emit(Messages.H_Purchase_Structure_Result, data);
+        if (players[data.hash].population >= data.cost) players[data.hash].population -= data.cost;
+        socket.emit(Messages.H_Purchase_Structure_Result, data);
     });
 };
 'use strict';
@@ -643,6 +649,7 @@ var roomStatus = [['room open!', 'room_open'], ['room full!', 'room_full'], ['ga
 
 var lobbyList = {};
 
+//show the lobby
 var lobby_showLobby = function lobby_showLobby() {
   document.querySelector("#game").style.display = "none";
   document.querySelector("#lobby").style.display = "block";
@@ -652,9 +659,13 @@ var lobby_showLobby = function lobby_showLobby() {
   body.classList.add("movingBG");
   body.classList.remove("staticBG");
 
+  //reset ready button
+  readyButton.image = document.getElementById("ready");
+
   cancelAnimationFrame(animationFrame);
 };
 
+//join a game room
 var joinRoom = function joinRoom(room) {
   if (!room) return;
   //TODO change game state
@@ -662,6 +673,7 @@ var joinRoom = function joinRoom(room) {
   client_showGame();
 };
 
+//make a game room
 var sendCreateRoom = function sendCreateRoom(room) {
   socket.emit(Messages.S_Create_Room, { room: room });
   client_showGame();
@@ -1047,7 +1059,6 @@ var onSkinUpdate = function onSkinUpdate(sock) {
     for (var i = 0; i < numSkins; i++) {
         skinArray[i] = false;
     }
-
     socket.skinArray = skinArray;
 
     socket.on(Messages.S_Buy_Skin, function (data) {
@@ -1087,6 +1098,7 @@ var onSkinUpdate = function onSkinUpdate(sock) {
     });
 };
 
+//lobby listeners
 var onLobby = function onLobby(sock) {
     var socket = sock;
 
@@ -1095,6 +1107,7 @@ var onLobby = function onLobby(sock) {
     });
 };
 
+//set the players in the game
 var setPlayers = function setPlayers() {
     var keys = Object.keys(users);
 
@@ -1173,20 +1186,26 @@ var onGameUpdate = function onGameUpdate(sock) {
         var attackData = data;
         var attackDataKeys = Object.keys(attackData);
         for (var i = 0; i < attackDataKeys.length; i++) {
-            if (attacks[attackData[i].hash]) {
-                attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
-                attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
-                attacks[attackData[i].hash].alpha = 0.05;
-                attacks[attackData[i].hash].destX = attackData[i].x;
-                attacks[attackData[i].hash].destY = attackData[i].y;
-                attacks[attackData[i].hash].updateTick = attackData[i].tick;
+            if (attackData[i]) {
+                //done to avoid typeerror when an attack is deleted
+                if (attacks[attackData[i].hash]) {
+                    attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
+                    attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
+                    attacks[attackData[i].hash].alpha = 0.05;
+                    attacks[attackData[i].hash].destX = attackData[i].x;
+                    attacks[attackData[i].hash].destY = attackData[i].y;
+                    attacks[attackData[i].hash].updateTick = attackData[i].tick;
+                }
             }
         }
     });
 
     socket.on(Messages.C_Purchase_Structure_Result, function (data) {
         players[data.hash].structures[data.which].setup(data.type);
-        players[data.hash].population -= data.cost;
+        //only subtract pop if not the host
+        if (!socket.isHost) {
+            players[data.hash].population -= data.cost;
+        }
     });
 
     socket.on(Messages.C_Attack_Create, function (data) {
@@ -1210,6 +1229,8 @@ var onGameUpdate = function onGameUpdate(sock) {
         if (players[at.targetHash].population <= 0) {
             players[at.targetHash].dead = true;
         }
+
+        //delete the attack that hit
         delete attacks[data.hash];
     });
 
@@ -1226,6 +1247,12 @@ var onGameUpdate = function onGameUpdate(sock) {
     //get the hash of the winner
     socket.on(Messages.C_Winner, function (data) {
         winner = data;
+
+        //delete all attacks
+        var keys = Object.keys(attacks);
+        for (var i = 0; i < keys.length; i++) {
+            delete attacks[keys[i]];
+        }
     });
 };
 

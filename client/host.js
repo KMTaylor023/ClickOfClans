@@ -1,4 +1,4 @@
- 
+//update attacks on the screen
 const updateAttack = () =>{  
     var returnMe = {};
     
@@ -54,6 +54,7 @@ const updateAttack = () =>{
     }
 }
 
+//host socket listeners
 const onHosted = () => { 
     document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack,100);
@@ -121,8 +122,6 @@ const onHosted = () => {
     });
     
     socket.on(Messages.H_Attack_Click, (at) => { 
-        
-        
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
@@ -163,6 +162,7 @@ const onHosted = () => {
     socket.on(Messages.H_Purchase_Structure, (data) => {  
       // Make sure the cost is right 
       if(players[data.hash].population >= data.cost) 
+        players[data.hash].population -= data.cost;
         socket.emit(Messages.H_Purchase_Structure_Result,data);
     });
 }

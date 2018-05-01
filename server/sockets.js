@@ -112,6 +112,7 @@ const hostAttackFired = (sock) => {
   });
 };
 
+// attack spawn listener
 const hostAttackCreate = (sock) => {
   const socket = sock;
 
@@ -120,6 +121,7 @@ const hostAttackCreate = (sock) => {
   });
 };
 
+// structure purchase listeners
 const hostPurchaseStructure = (sock) => {
   const socket = sock;
 
@@ -127,7 +129,7 @@ const hostPurchaseStructure = (sock) => {
     io.sockets.in(socket.roomString).emit(Messages.H_Purchase_Structure, data);
   });
 
-  socket.on(Messages.H_Purchase_Structure_Result, (data) => { 
+  socket.on(Messages.H_Purchase_Structure_Result, (data) => {
     io.sockets.in(socket.roomString).emit(Messages.C_Purchase_Structure_Result, data);
   });
 };
@@ -329,6 +331,7 @@ const onJoinRoom = (sock) => {
   });
 };
 
+// leave the current room
 const onLeaveRoom = (sock) => {
   const socket = sock;
 

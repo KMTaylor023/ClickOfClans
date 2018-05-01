@@ -26,7 +26,6 @@ const onSkinUpdate = (sock) => {
     for (let i = 0; i < numSkins; i++){
         skinArray[i] = false;
     }
-    
     socket.skinArray = skinArray;
     
     socket.on(Messages.S_Buy_Skin, (data) => {
@@ -67,6 +66,7 @@ const onSkinUpdate = (sock) => {
     });
 };
 
+//lobby listeners
 const onLobby = (sock) => {
   const socket = sock;
   
@@ -75,6 +75,7 @@ const onLobby = (sock) => {
   });
 };
 
+//set the players in the game
 const setPlayers = () => {
   const keys = Object.keys(users);
   
@@ -156,20 +157,25 @@ const onGameUpdate = (sock) => {
       var attackDataKeys = Object.keys(attackData); 
       for(var i = 0; i < attackDataKeys.length; i++)
       { 
-          if(attacks[attackData[i].hash]){
-            attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
-            attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
-            attacks[attackData[i].hash].alpha = 0.05;
-            attacks[attackData[i].hash].destX = attackData[i].x;
-            attacks[attackData[i].hash].destY = attackData[i].y;
-            attacks[attackData[i].hash].updateTick = attackData[i].tick;
+          if (attackData[i]){   //done to avoid typeerror when an attack is deleted
+              if(attacks[attackData[i].hash]){
+                attacks[attackData[i].hash].prevX = attacks[attackData[i].hash].x;
+                attacks[attackData[i].hash].prevY = attacks[attackData[i].hash].y;
+                attacks[attackData[i].hash].alpha = 0.05;
+                attacks[attackData[i].hash].destX = attackData[i].x;
+                attacks[attackData[i].hash].destY = attackData[i].y;
+                attacks[attackData[i].hash].updateTick = attackData[i].tick;
+              }
           }
       }
   });
     
   socket.on(Messages.C_Purchase_Structure_Result, (data) => { 
       players[data.hash].structures[data.which].setup(data.type); 
-      players[data.hash].population -= data.cost;
+      //only subtract pop if not the host
+     if (!socket.isHost){
+         players[data.hash].population -= data.cost;
+     }
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
@@ -193,7 +199,9 @@ const onGameUpdate = (sock) => {
       if (players[at.targetHash].population <= 0){
           players[at.targetHash].dead = true;
       }
-      delete attacks[data.hash]; 
+      
+      //delete the attack that hit
+      delete attacks[data.hash];
   });
     
   // a structure was hit
@@ -209,6 +217,12 @@ const onGameUpdate = (sock) => {
     //get the hash of the winner
     socket.on(Messages.C_Winner, (data) => {
         winner = data;
+        
+        //delete all attacks
+        const keys = Object.keys(attacks);
+        for(let i = 0; i < keys.length; i++) {
+            delete attacks[keys[i]];
+        }
     });
 };
 

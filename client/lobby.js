@@ -12,6 +12,7 @@ const roomStatus = [['room open!', 'room_open'],
 
 var lobbyList = {};
 
+//show the lobby
 var lobby_showLobby = () => {
   document.querySelector("#game").style.display = "none";
   document.querySelector("#lobby").style.display = "block";
@@ -20,10 +21,14 @@ var lobby_showLobby = () => {
   var body =   document.getElementsByTagName("BODY")[0];
   body.classList.add("movingBG");
   body.classList.remove("staticBG");      
+  
+  //reset ready button
+  readyButton.image = document.getElementById("ready");
     
   cancelAnimationFrame(animationFrame);
 }
 
+//join a game room
 const joinRoom = (room) => {
   if(!room) return;
   //TODO change game state
@@ -31,7 +36,7 @@ const joinRoom = (room) => {
   client_showGame();
 };
 
-
+//make a game room
 const sendCreateRoom = (room) => {
   socket.emit(Messages.S_Create_Room,{room});
   client_showGame();
