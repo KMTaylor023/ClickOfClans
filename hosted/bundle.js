@@ -139,6 +139,7 @@ var doMouseDown = function doMouseDown(e) {
                             //send a currency click event 
                             socket.emit(Messages.C_Currency_Click);
                         } else {
+
                             //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
                                 y: myY, color: players[myHash].color });
@@ -173,10 +174,8 @@ var doMouseDown = function doMouseDown(e) {
                                                     type: struct.type });
                                             }
                                         }
-                                } else {
-                                    // if it's not a placeholder, reset the selectedLotIndex and run the onclick function
-                                    selectedLotIndex = -1;
-                                    struct.onClick(mouse.x - struct.x, struct);
+                                } else if (struct.type === STRUCTURE_TYPES.SHIELD) {
+                                    socket.emit(Messages.C_Fortify, { hash: myHash, which: j });
                                 }
                             }
                         }
@@ -508,6 +507,9 @@ var GameStates = Object.freeze({
 });
 "use strict";
 
+var BARN_WAIT = 5;
+var barnTime = BARN_WAIT;
+
 //update attacks on the screen
 var updateAttack = function updateAttack() {
     var returnMe = {};
@@ -522,7 +524,6 @@ var updateAttack = function updateAttack() {
         if (newTick >= 70 && newTick <= 75) {
             // Check to see if we can hit anything on the structure
             var destPlayer = players[at.targetHash];
-            console.log(destPlayer);
             if (destPlayer.structures[at.lane].type !== STRUCTURE_TYPES.PLACEHOLDER) {
                 socket.emit(Messages.H_Attack_Struct, { hash: arOfHashes[i], lane: at.lane, dest: at.targetHash });
                 continue;
@@ -554,6 +555,28 @@ var updateAttack = function updateAttack() {
             socket.emit(Messages.H_Winner, potentialWinner);
         }
     }
+
+    //Farm check
+
+    if (barnTime === BARN_WAIT) {
+        barnTime = 0;
+
+        var playKeys = Object.keys(players);
+        for (var _i2 = 0; _i2 < playKeys.length; _i2++) {
+            var player = players[playKeys[_i2]];
+            var add = 0;
+            for (var j = 0; j < 3; j++) {
+                add += player.structures[j].popgen;
+            }
+
+            if (add !== 0) {
+                users[player.hash].population += add;
+                player.population += add;
+                users[player.hash].lastUpdate = new Date().getTime();
+                socket.emit(Messages.H_Currency_Result, users[player.hash]);
+            }
+        }
+    } else barnTime++;
 };
 
 //host socket listeners
@@ -619,9 +642,22 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Currency_Click, function (hash) {
         players[hash].population += 1;
-        players[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result, players[hash]);
+        users[hash].population = players[hash].population;
+        users[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result, users[hash]);
     });
+
+    var doFortify = function doFortify(data) {
+        var dat = data;
+        if (players[data.hash].population >= 31 && players[data.hash].structures[data.which].health < players[data.hash].structures[data.which].maxhealth) {
+            players[data.hash].structures[data.which].health += 30;
+            if (players[data.hash].structures[data.which].health > players[data.hash].structures[data.which].maxhealth) players[data.hash].structures[data.which].health = players[data.hash].structures[data.which].maxhealth;
+            players[data.hash].population -= 30;
+            users[data.hash].population = players[data.hash].population;
+            dat.health = players[data.hash].structures[data.which].health;
+            socket.emit(Messages.H_Fortified, dat);
+        }
+    };
 
     socket.on(Messages.H_Attack_Click, function (at) {
         //make sure originplayer can afford to attack and the target isn't dead
@@ -629,7 +665,7 @@ var onHosted = function onHosted() {
         var destPlayer = players[at.targetHash];
         if (originPlayer.population > 31 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 30;
+
 
             //store the attack
             attacks[at.hash] = at;
@@ -649,15 +685,27 @@ var onHosted = function onHosted() {
             // now get the lane we're in
             if (moveX === 0) attacks[at.hash].lane = 2;else if (moveY === 0) attacks[at.hash].lane = 0;else attacks[at.hash].lane = 1;
 
-            // emit
-            socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
+            if (originPlayer.structures[attacks[at.hash].lane].type === STRUCTURE_TYPES.SHIELD) {
+                doFortify({ hash: originPlayer.hash, which: attacks[at.hash].lane });
+                delete attacks[at.hash];
+            } else {
+                originPlayer.population -= 30;
+                users[at.originHash].population = originPlayer.population;
+                // emit
+                socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
+            }
         }
     });
 
     socket.on(Messages.H_Purchase_Structure, function (data) {
         // Make sure the cost is right 
         if (players[data.hash].population >= data.cost) players[data.hash].population -= data.cost;
+        users[data.hash].population = players[data.hash].population;
         socket.emit(Messages.H_Purchase_Structure_Result, data);
+    });
+
+    socket.on(Messages.H_Fortify, function (data) {
+        doFortify(data);
     });
 };
 'use strict';
@@ -847,6 +895,8 @@ var Messages = Object.freeze({
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
   C_Attack_Hit: 'c_attackHit', //the host said an attack hit
   C_Attack_Struct: 'c_attackStruct', // the host said a structure was hit
+  C_Fortify: 'c_fortify', // fortify a structure
+  C_Fortified: 'c_fortified', // fortified a structure
   C_Room_Update: 'c_roomUpdate', //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer', //a player left the server
   C_Host_Left: 'c_hostLeft', //a player left the server
@@ -867,6 +917,8 @@ var Messages = Object.freeze({
   H_Purchase_Structure: 'h_purchaseStructure',
   H_Purchase_Structure_Result: 'h_purchaseStructureResult',
   H_Attack_Struct: 'h_attackStruct', // when an attack hits a structure
+  H_Fortify: 'h_fortify', // fortify a structure
+  H_Fortified: 'h_fortified', // fortified a structure
   H_Attack_Hit: 'h_attackHit', //a fired attack hit a target
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
@@ -1101,8 +1153,8 @@ var onSkinUpdate = function onSkinUpdate(sock) {
             var skinElement = document.getElementById(data.skin); //the section containing the bought skin
             skinElement.classList.add("equipped");
 
-            console.dir('equipped ' + data.skin);
-            console.log(skins[socket.skin]);
+            //console.dir('equipped ' + data.skin);
+            //console.log(skins[socket.skin]);
         } else {
             document.querySelector("#unsuccessfulEquip").style.display = "block";
         }
@@ -1216,6 +1268,7 @@ var onGameUpdate = function onGameUpdate(sock) {
         //only subtract pop if not the host
         if (!socket.isHost) {
             players[data.hash].population -= data.cost;
+            users[data.hash].population -= data.cost;
         }
     });
 
@@ -1223,11 +1276,18 @@ var onGameUpdate = function onGameUpdate(sock) {
         //only subtract pop if not the host
         if (!socket.isHost) {
             players[data.originHash].population -= 30;
+            users[data.originHash].population -= 30;
         }
-        users[data.originHash].population -= 30;
         attacks[data.hash] = data;
     });
 
+    socket.on(Messages.C_Fortified, function (data) {
+        if (!socket.isHost) {
+            players[data.hash].population -= 30;
+            users[data.hash].population -= 30;
+            players[data.hash].structures[data.which].health = data.health;
+        }
+    });
     //an attack hit
     socket.on(Messages.C_Attack_Hit, function (data) {
         //remove the attack that hit from attacks somehow
@@ -1248,7 +1308,7 @@ var onGameUpdate = function onGameUpdate(sock) {
     // a structure was hit
     socket.on(Messages.C_Attack_Struct, function (data) {
 
-        players[data.dest].structures[data.lane].health -= attacks[data.hash].damage;
+        players[data.dest].structures[data.lane].health -= attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult;
         if (players[data.dest].structures[data.lane].health <= 0) {
             players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
         }

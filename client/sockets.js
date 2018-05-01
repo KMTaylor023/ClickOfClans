@@ -57,8 +57,8 @@ const onSkinUpdate = (sock) => {
             var skinElement = document.getElementById(data.skin);  //the section containing the bought skin
             skinElement.classList.add("equipped");
             
-            console.dir('equipped ' + data.skin);
-            console.log(skins[socket.skin]);
+            //console.dir('equipped ' + data.skin);
+            //console.log(skins[socket.skin]);
         }
         else{
             document.querySelector("#unsuccessfulEquip").style.display = "block";
@@ -175,18 +175,26 @@ const onGameUpdate = (sock) => {
       //only subtract pop if not the host
      if (!socket.isHost){
          players[data.hash].population -= data.cost;
+         users[data.hash].population -= data.cost;
      }
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
      //only subtract pop if not the host
      if (!socket.isHost){
-         players[data.originHash].population -= 30;
+        players[data.originHash].population -= 30;
+        users[data.originHash].population -= 30;
      }
-     users[data.originHash].population -= 30;
      attacks[data.hash] = data; 
   });
     
+  socket.on(Messages.C_Fortified, (data) => {
+      if (!socket.isHost){
+        players[data.hash].population -= 30;
+        users[data.hash].population -= 30;
+          players[data.hash].structures[data.which].health = data.health;
+      }
+  });
   //an attack hit
   socket.on(Messages.C_Attack_Hit, (data) => {
       //remove the attack that hit from attacks somehow
@@ -207,7 +215,8 @@ const onGameUpdate = (sock) => {
   // a structure was hit
   socket.on(Messages.C_Attack_Struct, (data) => {
       
-      players[data.dest].structures[data.lane].health -= attacks[data.hash].damage;
+      players[data.dest].structures[data.lane].health -= 
+        (attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult);
       if (players[data.dest].structures[data.lane].health <= 0){
           players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
       }

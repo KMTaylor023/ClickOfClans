@@ -102,6 +102,13 @@ const hostAttackStruct = (sock) => {
   });
 };
 
+const hostFortifiedStructure = (sock) => {
+    const socket = sock;
+    
+    socket.on(Messages.H_Fortified, (data) => {
+        io.sockets.in(socket.roomString).emit(Messages.C_Fortified, data);
+    })
+}
 
 // send the host processed data from a fired attack event to the whole room
 const hostAttackFired = (sock) => {
@@ -224,6 +231,7 @@ const joinRoom = (sock, roomName) => {
     hostPurchaseStructure(socket);
     hostStateChange(socket);
     hostEndGame(socket);
+    hostFortifiedStructure(socket);
 
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;
@@ -416,7 +424,7 @@ const setupSockets = (ioServer) => {
         data.targetHash,
         data.x,
         data.y,
-        data.color,
+        data.color
       );
 
       // send the target data to the host
@@ -427,6 +435,10 @@ const setupSockets = (ioServer) => {
       socket.hostSocket.emit(Messages.H_Purchase_Structure, data);
     });
 
+    socket.on(Messages.C_Fortify, (data) => {
+        socket.hostSocket.emit(Messages.H_Fortify, data);
+    });
+      
     enterLobby(socket);
   });
 };
