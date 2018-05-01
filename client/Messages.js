@@ -13,6 +13,8 @@ const Messages = Object.freeze({
   C_Attack_Create: 'c_attackCreate', // the host told me an attack was created
   C_Attack_Hit: 'c_attackHit',      //the host said an attack hit
   C_Attack_Struct: 'c_attackStruct', // the host said a structure was hit
+  C_Fortify: 'c_fortify',       // fortify a structure
+  C_Fortified: 'c_fortified',       // fortified a structure
   C_Room_Update: 'c_roomUpdate',    //update users lsit with the list from host
   C_Player_Left: 'c_removePlayer',  //a player left the server
   C_Host_Left: 'c_hostLeft',  //a player left the server
@@ -33,6 +35,8 @@ const Messages = Object.freeze({
   H_Purchase_Structure: 'h_purchaseStructure', 
   H_Purchase_Structure_Result: 'h_purchaseStructureResult', 
   H_Attack_Struct: 'h_attackStruct', // when an attack hits a structure
+  H_Fortify: 'h_fortify',           // fortify a structure
+  H_Fortified: 'h_fortified',           // fortified a structure
   H_Attack_Hit: 'h_attackHit',          //a fired attack hit a target
   H_Become_Host: 'h_isHost',        //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate',     //use to send the game room info to the clients

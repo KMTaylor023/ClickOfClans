@@ -18,7 +18,6 @@ const updateAttack = () =>{
         {
             // Check to see if we can hit anything on the structure
             var destPlayer = players[at.targetHash];
-            console.log(destPlayer);
             if(destPlayer.structures[at.lane].type !== STRUCTURE_TYPES.PLACEHOLDER){
                 socket.emit(Messages.H_Attack_Struct, {hash: arOfHashes[i], lane: at.lane, dest: at.targetHash}); 
                 continue;
@@ -147,16 +146,28 @@ const onHosted = () => {
         socket.emit(Messages.H_Currency_Result,users[hash]);
     });
     
+    const doFortify = (data) => {
+        const dat = data;
+        if(players[data.hash].population >= 31 && 
+           players[data.hash].structures[data.which].health < players[data.hash].structures[data.which].maxhealth) {
+            players[data.hash].structures[data.which].health += 30;
+            if(players[data.hash].structures[data.which].health > players[data.hash].structures[data.which].maxhealth)
+                players[data.hash].structures[data.which].health = players[data.hash].structures[data.which].maxhealth
+            players[data.hash].population -= 30;
+            users[data.hash].population = players[data.hash].population;
+            dat.health = players[data.hash].structures[data.which].health;
+            socket.emit(Messages.H_Fortified, dat);
+        }
+    }
+    
     socket.on(Messages.H_Attack_Click, (at) => { 
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
         if (originPlayer.population > 31 && !destPlayer.dead){
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 30;
-            users[at.originHash].population = originPlayer.population;
             
-            console.log(`player: ${originPlayer.population}, user: ${users[at.originHash].population}`);
+            
             
             //store the attack
             attacks[at.hash] = at;
@@ -180,13 +191,17 @@ const onHosted = () => {
                 attacks[at.hash].lane = 0;
             else 
                 attacks[at.hash].lane = 1;
-
           
-            at.damage *= players[at.originHash].structures[at.lane].atkmult;
-            console.log(at.damage);
-          
-            // emit
-            socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
+            
+            if(originPlayer.structures[attacks[at.hash].lane].type === STRUCTURE_TYPES.SHIELD) {
+                doFortify({hash: originPlayer.hash, which:attacks[at.hash].lane});
+                delete attacks[at.hash];
+            } else {
+                originPlayer.population -= 30;
+                users[at.originHash].population = originPlayer.population;
+                // emit
+                socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
+            }
         }
         
         
@@ -198,5 +213,9 @@ const onHosted = () => {
         players[data.hash].population -= data.cost;
         users[data.hash].population = players[data.hash].population;
         socket.emit(Messages.H_Purchase_Structure_Result,data);
+    });
+    
+    socket.on(Messages.H_Fortify, (data) => {
+        doFortify(data)
     });
 }

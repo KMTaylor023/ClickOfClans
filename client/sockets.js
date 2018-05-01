@@ -57,8 +57,8 @@ const onSkinUpdate = (sock) => {
             var skinElement = document.getElementById(data.skin);  //the section containing the bought skin
             skinElement.classList.add("equipped");
             
-            console.dir('equipped ' + data.skin);
-            console.log(skins[socket.skin]);
+            //console.dir('equipped ' + data.skin);
+            //console.log(skins[socket.skin]);
         }
         else{
             document.querySelector("#unsuccessfulEquip").style.display = "block";
@@ -188,6 +188,13 @@ const onGameUpdate = (sock) => {
      attacks[data.hash] = data; 
   });
     
+  socket.on(Messages.C_Fortified, (data) => {
+      if (!socket.isHost){
+        players[data.hash].population -= 30;
+        users[data.hash].population -= 30;
+          players[data.hash].structures[data.which].health = data.health;
+      }
+  });
   //an attack hit
   socket.on(Messages.C_Attack_Hit, (data) => {
       //remove the attack that hit from attacks somehow

@@ -140,6 +140,7 @@ const doMouseDown = (e) => {
                             socket.emit(Messages.C_Currency_Click);
                         }
                         else{
+                            
                             //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, 
                             {originHash: myHash, targetHash: player.hash, x: myX, 
@@ -178,13 +179,9 @@ const doMouseDown = (e) => {
                                 }
                                 
                             }
-                       }else
-                       { 
-                            // if it's not a placeholder, reset the selectedLotIndex and run the onclick function
-                            selectedLotIndex = -1;
-                            struct.onClick(mouse.x - struct.x, struct);
+                       }else if(struct.type === STRUCTURE_TYPES.SHIELD) {
+                           socket.emit(Messages.C_Fortify, {hash: myHash, which: j});
                        }
-                       
                      }
                   }
                 }
