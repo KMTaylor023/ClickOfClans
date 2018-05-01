@@ -30,6 +30,26 @@ const redraw = () => {
     
     //draw player
     if (player.skin != null){   //!= null to avoid a false if skin1 is had since its stored as value 0 
+        // If it's you, put a nice tab over your castle that labels you as you
+        if(player.hash === myHash)
+        {
+            ctx.save(); 
+            ctx.drawImage(pannelImage,
+                          64 * player.playerNum,
+                          0,
+                          64,
+                          32,
+                          player.x + 16,
+                          player.y - 16,
+                          64,
+                          32);
+            ctx.textAlign = "center";
+            ctx.fillStyle = "black";
+            ctx.font="15px Do Hyeon";
+            ctx.fillText("YOU",player.x + 48, player.y-4,100);
+            ctx.restore();
+        }
+        
         //get the skin url
         var skin = skins[player.skin];
         //draw the skin
@@ -37,7 +57,8 @@ const redraw = () => {
         
         // draw their population count
         ctx.save();
-        ctx.fillStyle = "black";
+        ctx.fillStyle = "#00BFFF";
+        ctx.textAlign = "center";
         ctx.font="28px Do Hyeon";
         ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10,100);
         ctx.restore();
@@ -235,12 +256,11 @@ const redraw = () => {
     }
     else if (gameState === GameStates.GAME_OVER){
         //draw the winner
-        let winnerNum = keys.indexOf(winner) + 1;
         ctx.save();
         ctx.fillStyle = "white";
         ctx.drawImage(
             winnersBG,
-            200 * winnerNum,
+            200 * winner,
             0,
             200,
             60,
@@ -252,7 +272,7 @@ const redraw = () => {
         ctx.fillStyle = "black";
         ctx.font="30px Do Hyeon";
         ctx.textAlign = "center";
-        ctx.fillText("Player " + winnerNum + " wins!", 352, 280,250);
+        ctx.fillText("Player " + winner + " wins!", 352, 280,250);
         ctx.restore();
         
         //draw return to lobby button

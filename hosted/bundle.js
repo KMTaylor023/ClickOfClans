@@ -50,7 +50,7 @@ var pannelImage2 = void 0;
 var crownImage = void 0;
 var skullImage = void 0;
 var winnersBG = void 0;
-var winner = void 0; //hash of the player that won
+var winner = void 0; //player number of the player that won
 
 //show the canvas
 var client_showGame = function client_showGame() {
@@ -354,6 +354,17 @@ var redraw = function redraw() {
         //draw player
         if (player.skin != null) {
             //!= null to avoid a false if skin1 is had since its stored as value 0 
+            // If it's you, put a nice tab over your castle that labels you as you
+            if (player.hash === myHash) {
+                ctx.save();
+                ctx.drawImage(pannelImage, 64 * player.playerNum, 0, 64, 32, player.x + 16, player.y - 16, 64, 32);
+                ctx.textAlign = "center";
+                ctx.fillStyle = "black";
+                ctx.font = "15px Do Hyeon";
+                ctx.fillText("YOU", player.x + 48, player.y - 4, 100);
+                ctx.restore();
+            }
+
             //get the skin url
             var skin = skins[player.skin];
             //draw the skin
@@ -361,7 +372,8 @@ var redraw = function redraw() {
 
             // draw their population count
             ctx.save();
-            ctx.fillStyle = "black";
+            ctx.fillStyle = "#00BFFF";
+            ctx.textAlign = "center";
             ctx.font = "28px Do Hyeon";
             ctx.fillText(player.population, player.x + halfWidth, player.y + halfHeight + 10, 100);
             ctx.restore();
@@ -466,15 +478,14 @@ var redraw = function redraw() {
         ctx.restore();
     } else if (gameState === GameStates.GAME_OVER) {
         //draw the winner
-        var winnerNum = keys.indexOf(winner) + 1;
         ctx.save();
         ctx.fillStyle = "white";
-        ctx.drawImage(winnersBG, 200 * winnerNum, 0, 200, 60, 250, 250, 200, 60);
+        ctx.drawImage(winnersBG, 200 * winner, 0, 200, 60, 250, 250, 200, 60);
         //ctx.fillRect(300, 200, 100, 40);
         ctx.fillStyle = "black";
         ctx.font = "30px Do Hyeon";
         ctx.textAlign = "center";
-        ctx.fillText("Player " + winnerNum + " wins!", 352, 280, 250);
+        ctx.fillText("Player " + winner + " wins!", 352, 280, 250);
         ctx.restore();
 
         //draw return to lobby button
@@ -1246,7 +1257,8 @@ var onGameUpdate = function onGameUpdate(sock) {
 
     //get the hash of the winner
     socket.on(Messages.C_Winner, function (data) {
-        winner = data;
+        var playerKeys = Object.keys(players);
+        winner = playerKeys.indexOf(winner) + 1;
 
         //delete all attacks
         var keys = Object.keys(attacks);

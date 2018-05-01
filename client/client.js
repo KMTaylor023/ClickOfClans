@@ -48,7 +48,7 @@ let pannelImage2;
 let crownImage;
 let skullImage;
 let winnersBG;
-let winner;     //hash of the player that won
+let winner;     //player number of the player that won
 
 //show the canvas
 const client_showGame = () => {
