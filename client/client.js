@@ -110,6 +110,7 @@ const doMouseDown = (e) => {
                     //emit leave room event
                     socket.emit(Messages.S_Leave);
                     socket.isHost = false;  //reset host status
+                    lobby_showLobby();
                 }
             }
         }

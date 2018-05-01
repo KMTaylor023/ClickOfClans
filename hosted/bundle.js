@@ -111,6 +111,7 @@ var doMouseDown = function doMouseDown(e) {
                     //emit leave room event
                     socket.emit(Messages.S_Leave);
                     socket.isHost = false; //reset host status
+                    lobby_showLobby();
                 }
             }
         } else {
@@ -725,7 +726,7 @@ var lobby_showLobby = function lobby_showLobby() {
   document.querySelector("#game").style.display = "none";
   document.querySelector("#lobby").style.display = "block";
 
-  // Turn off the scrolling bg  
+  // Turn on the scrolling bg  
   var body = document.getElementsByTagName("BODY")[0];
   body.classList.add("movingBG");
   body.classList.remove("staticBG");
@@ -1318,7 +1319,7 @@ var onGameUpdate = function onGameUpdate(sock) {
     //get the hash of the winner
     socket.on(Messages.C_Winner, function (data) {
         var playerKeys = Object.keys(players);
-        winner = playerKeys.indexOf(winner) + 1;
+        winner = playerKeys.indexOf(data) + 1;
 
         //delete all attacks
         var keys = Object.keys(attacks);

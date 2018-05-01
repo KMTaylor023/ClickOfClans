@@ -89,11 +89,12 @@ ul{
 
 #ad2{
     position:absolute;
-    left: 20px;
+    left: 32%;
     top: 660px;
     height: 128px;
     width: 700px;
 }
+
 
 .movingBG{
     background: url("../assets/sprites/Scroll.png") repeat;
