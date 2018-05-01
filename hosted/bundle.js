@@ -604,9 +604,9 @@ var onHosted = function onHosted() {
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
-        if (originPlayer.population > 21 && !destPlayer.dead) {
+        if (originPlayer.population > 31 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 20;
+            originPlayer.population -= 30;
 
             //store the attack
             attacks[at.hash] = at;
@@ -1199,9 +1199,9 @@ var onGameUpdate = function onGameUpdate(sock) {
     socket.on(Messages.C_Attack_Create, function (data) {
         //only subtract pop if not the host
         if (!socket.isHost) {
-            players[data.originHash].population -= 20;
+            players[data.originHash].population -= 30;
         }
-        users[data.originHash].population -= 20;
+        users[data.originHash].population -= 30;
         attacks[data.hash] = data;
     });
 

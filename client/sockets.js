@@ -181,9 +181,9 @@ const onGameUpdate = (sock) => {
   socket.on(Messages.C_Attack_Create, (data) => {
      //only subtract pop if not the host
      if (!socket.isHost){
-         players[data.originHash].population -= 20;
+         players[data.originHash].population -= 30;
      }
-     users[data.originHash].population -= 20;
+     users[data.originHash].population -= 30;
      attacks[data.hash] = data; 
   });
     
