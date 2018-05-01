@@ -15,6 +15,8 @@ let equipButton;    //click to equip a skin
 let skinButton;     //click to go to skin select
 let lobbyButton;    //click to go to the lobby
 let closeButton;    //close the error popup
+let instructionButton;  //open instructions
+let returnButton;       //return to lobby from instructions
 let skins = [];
 let gameState;      //current game state
 let readyButton = {
@@ -258,6 +260,8 @@ const init = () => {
   buyButton = document.querySelector("#buyButton");
   equipButton = document.querySelector("#equipButton");
   closeButton = document.querySelector("#closeButton");
+  instructionButton = document.querySelector("#instructionsButton")
+  returnButton = document.querySelector("#returnButton")
     
   //set event listeners
   lobbyButton.onclick = (e) => {
@@ -267,6 +271,14 @@ const init = () => {
   skinButton.onclick = (e) => {
       document.querySelector("#roomSelection").style.display = "none";
       document.querySelector("#skins").style.display = "block";
+  };
+  returnButton.onclick = (e) => {
+      document.querySelector("#roomSelection").style.display = "block";
+      document.querySelector("#instructions").style.display = "none";
+  };
+  instructionButton.onclick = (e) => {
+      document.querySelector("#roomSelection").style.display = "none";
+      document.querySelector("#instructions").style.display = "block";
   };
   buyButton.onclick = purchaseSkin;
   equipButton.onclick = equipSkin;

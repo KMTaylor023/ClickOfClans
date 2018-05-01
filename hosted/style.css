@@ -13,10 +13,14 @@
     display: none;
 }
 
+#instructions {
+    display: none;
+    text-align: center; 
+}
+
 #game {
     display: none;
     text-align: center;
-    
 }
 
 .grid{
@@ -34,6 +38,7 @@
     height: 750px;
     width: 30%;
     background-color: rgb(255,255,255,.75);
+    padding-top: 20px;
 }
 
 #roomSelection{
