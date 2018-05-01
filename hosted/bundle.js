@@ -497,6 +497,9 @@ var GameStates = Object.freeze({
 });
 "use strict";
 
+var BARN_WAIT = 5;
+var barnTime = BARN_WAIT;
+
 //update attacks on the screen
 var updateAttack = function updateAttack() {
     var returnMe = {};
@@ -543,6 +546,28 @@ var updateAttack = function updateAttack() {
             socket.emit(Messages.H_Winner, potentialWinner);
         }
     }
+
+    //Farm check
+
+    if (barnTime === BARN_WAIT) {
+        barnTime = 0;
+
+        var playKeys = Object.keys(players);
+        for (var _i2 = 0; _i2 < playKeys.length; _i2++) {
+            var player = players[playKeys[_i2]];
+            var add = 0;
+            for (var j = 0; j < 3; j++) {
+                add += player.structures[j].popgen;
+            }
+
+            if (add !== 0) {
+                users[player.hash].population += add;
+                player.population += add;
+                users[player.hash].lastUpdate = new Date().getTime();
+                socket.emit(Messages.H_Currency_Result, users[player.hash]);
+            }
+        }
+    } else barnTime++;
 };
 
 //host socket listeners
@@ -608,8 +633,9 @@ var onHosted = function onHosted() {
 
     socket.on(Messages.H_Currency_Click, function (hash) {
         players[hash].population += 1;
-        players[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result, players[hash]);
+        users[hash].population = players[hash].population;
+        users[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result, users[hash]);
     });
 
     socket.on(Messages.H_Attack_Click, function (at) {
@@ -619,6 +645,9 @@ var onHosted = function onHosted() {
         if (originPlayer.population > 31 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
             originPlayer.population -= 30;
+            users[at.originHash].population = originPlayer.population;
+
+            console.log("player: " + originPlayer.population + ", user: " + users[at.originHash].population);
 
             //store the attack
             attacks[at.hash] = at;
@@ -638,6 +667,9 @@ var onHosted = function onHosted() {
             // now get the lane we're in
             if (moveX === 0) attacks[at.hash].lane = 2;else if (moveY === 0) attacks[at.hash].lane = 0;else attacks[at.hash].lane = 1;
 
+            at.damage *= players[at.originHash].structures[at.lane].atkmult;
+            console.log(at.damage);
+
             // emit
             socket.emit(Messages.H_Attack_Create, attacks[at.hash]);
         }
@@ -646,6 +678,7 @@ var onHosted = function onHosted() {
     socket.on(Messages.H_Purchase_Structure, function (data) {
         // Make sure the cost is right 
         if (players[data.hash].population >= data.cost) players[data.hash].population -= data.cost;
+        users[data.hash].population = players[data.hash].population;
         socket.emit(Messages.H_Purchase_Structure_Result, data);
     });
 };
@@ -1205,6 +1238,7 @@ var onGameUpdate = function onGameUpdate(sock) {
         //only subtract pop if not the host
         if (!socket.isHost) {
             players[data.hash].population -= data.cost;
+            users[data.hash].population -= data.cost;
         }
     });
 
@@ -1212,8 +1246,8 @@ var onGameUpdate = function onGameUpdate(sock) {
         //only subtract pop if not the host
         if (!socket.isHost) {
             players[data.originHash].population -= 30;
+            users[data.originHash].population -= 30;
         }
-        users[data.originHash].population -= 30;
         attacks[data.hash] = data;
     });
 
@@ -1237,7 +1271,7 @@ var onGameUpdate = function onGameUpdate(sock) {
     // a structure was hit
     socket.on(Messages.C_Attack_Struct, function (data) {
 
-        players[data.dest].structures[data.lane].health -= attacks[data.hash].damage;
+        players[data.dest].structures[data.lane].health -= attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult;
         if (players[data.dest].structures[data.lane].health <= 0) {
             players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
         }

@@ -175,15 +175,16 @@ const onGameUpdate = (sock) => {
       //only subtract pop if not the host
      if (!socket.isHost){
          players[data.hash].population -= data.cost;
+         users[data.hash].population -= data.cost;
      }
   });
     
   socket.on(Messages.C_Attack_Create, (data) => {
      //only subtract pop if not the host
      if (!socket.isHost){
-         players[data.originHash].population -= 30;
+        players[data.originHash].population -= 30;
+        users[data.originHash].population -= 30;
      }
-     users[data.originHash].population -= 30;
      attacks[data.hash] = data; 
   });
     
@@ -207,7 +208,8 @@ const onGameUpdate = (sock) => {
   // a structure was hit
   socket.on(Messages.C_Attack_Struct, (data) => {
       
-      players[data.dest].structures[data.lane].health -= attacks[data.hash].damage;
+      players[data.dest].structures[data.lane].health -= 
+        (attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult);
       if (players[data.dest].structures[data.lane].health <= 0){
           players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
       }

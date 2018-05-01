@@ -416,7 +416,7 @@ const setupSockets = (ioServer) => {
         data.targetHash,
         data.x,
         data.y,
-        data.color,
+        data.color
       );
 
       // send the target data to the host

@@ -1,3 +1,6 @@
+const BARN_WAIT = 5;
+var barnTime = BARN_WAIT;
+
 //update attacks on the screen
 const updateAttack = () =>{  
     var returnMe = {};
@@ -52,6 +55,28 @@ const updateAttack = () =>{
             socket.emit(Messages.H_Winner, potentialWinner);
         }
     }
+  
+    //Farm check
+    
+    if(barnTime === BARN_WAIT) {
+        barnTime = 0;
+   
+        const playKeys = Object.keys(players);
+        for(let i = 0; i < playKeys.length; i++) {
+            const player = players[playKeys[i]];
+            let add = 0;
+            for(let j = 0; j < 3; j++) {
+                add += player.structures[j].popgen;
+            }
+            
+            if(add !== 0) {
+                users[player.hash].population += add;
+                player.population += add;
+                users[player.hash].lastUpdate = new Date().getTime();
+                socket.emit(Messages.H_Currency_Result,users[player.hash]);
+            }
+        }
+    } else barnTime ++;
 }
 
 //host socket listeners
@@ -117,8 +142,9 @@ const onHosted = () => {
     
     socket.on(Messages.H_Currency_Click, (hash) =>{
         players[hash].population += 1;
-        players[hash].lastUpdate = new Date().getTime();
-        socket.emit(Messages.H_Currency_Result,players[hash]);
+        users[hash].population = players[hash].population;
+        users[hash].lastUpdate = new Date().getTime();
+        socket.emit(Messages.H_Currency_Result,users[hash]);
     });
     
     socket.on(Messages.H_Attack_Click, (at) => { 
@@ -128,6 +154,9 @@ const onHosted = () => {
         if (originPlayer.population > 31 && !destPlayer.dead){
             //make sure origin player cant spawn attacks that would bring them to negative population
             originPlayer.population -= 30;
+            users[at.originHash].population = originPlayer.population;
+            
+            console.log(`player: ${originPlayer.population}, user: ${users[at.originHash].population}`);
             
             //store the attack
             attacks[at.hash] = at;
@@ -152,6 +181,10 @@ const onHosted = () => {
             else 
                 attacks[at.hash].lane = 1;
 
+          
+            at.damage *= players[at.originHash].structures[at.lane].atkmult;
+            console.log(at.damage);
+          
             // emit
             socket.emit(Messages.H_Attack_Create,attacks[at.hash]); 
         }
@@ -163,6 +196,7 @@ const onHosted = () => {
       // Make sure the cost is right 
       if(players[data.hash].population >= data.cost) 
         players[data.hash].population -= data.cost;
+        users[data.hash].population = players[data.hash].population;
         socket.emit(Messages.H_Purchase_Structure_Result,data);
     });
 }
