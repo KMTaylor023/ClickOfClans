@@ -604,9 +604,9 @@ var onHosted = function onHosted() {
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
-        if (originPlayer.population > 11 && !destPlayer.dead) {
+        if (originPlayer.population > 21 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 10;
+            originPlayer.population -= 20;
 
             //store the attack
             attacks[at.hash] = at;
@@ -889,7 +889,7 @@ var INFO = {};
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
   maxhealth: 50,
-  cost: 15,
+  cost: 30,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -901,7 +901,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
   maxhealth: 100,
-  cost: 20,
+  cost: 40,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -913,7 +913,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
   maxhealth: 300,
-  cost: 20,
+  cost: 40,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -977,18 +977,6 @@ var Structure = function () {
     key: "reset",
     value: function reset() {
       setup(STRUCTURE_TYPES.PLACEHOLDER);
-    }
-
-    //deals damage to structure
-
-  }, {
-    key: "takeDamage",
-    value: function takeDamage(dmg, isBonus) {
-      this.health -= dmg / this.defmult;
-      if (this.health < 0) {
-        this.health = 0;
-        this.destroyed = true;
-      }
     }
   }]);
 
@@ -1211,9 +1199,9 @@ var onGameUpdate = function onGameUpdate(sock) {
     socket.on(Messages.C_Attack_Create, function (data) {
         //only subtract pop if not the host
         if (!socket.isHost) {
-            players[data.originHash].population -= 10;
+            players[data.originHash].population -= 20;
         }
-        users[data.originHash].population -= 10;
+        users[data.originHash].population -= 20;
         attacks[data.hash] = data;
     });
 
@@ -1222,8 +1210,8 @@ var onGameUpdate = function onGameUpdate(sock) {
         //remove the attack that hit from attacks somehow
         //do attack hitting effects
         var at = attacks[data.hash];
-        players[at.targetHash].population -= 50;
-        users[at.targetHash].population -= 50;
+        players[at.targetHash].population -= attacks[data.hash].damage;
+        users[at.targetHash].population -= attacks[data.hash].damage;
 
         //check if the player died
         if (players[at.targetHash].population <= 0) {
@@ -1237,7 +1225,7 @@ var onGameUpdate = function onGameUpdate(sock) {
     // a structure was hit
     socket.on(Messages.C_Attack_Struct, function (data) {
 
-        players[data.dest].structures[data.lane].health -= 50;
+        players[data.dest].structures[data.lane].health -= attacks[data.hash].damage;
         if (players[data.dest].structures[data.lane].health <= 0) {
             players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
         }

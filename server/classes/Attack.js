@@ -10,7 +10,7 @@ class Attack {
     this.color = color;
     this.updateTick = 0;
     this.alpha = 0;
-    this.damage = 2; // change to be 2*numberOfUnits
+    this.damage = 40;
     // coords
     this.prevX = originX;
     this.prevY = originY;

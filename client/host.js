@@ -125,9 +125,9 @@ const onHosted = () => {
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
-        if (originPlayer.population > 11 && !destPlayer.dead){
+        if (originPlayer.population > 21 && !destPlayer.dead){
             //make sure origin player cant spawn attacks that would bring them to negative population
-            originPlayer.population -= 10;
+            originPlayer.population -= 20;
             
             //store the attack
             attacks[at.hash] = at;

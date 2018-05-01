@@ -28,7 +28,7 @@ const INFO = {};
 INFO[STRUCTURE_TYPES.FARM] = {
   health: 50,
   maxhealth: 50,
-  cost: 15,
+  cost: 30,
   color: 'rgb(34,139,34)',
   popgen: 2,
   atkmult: 1,
@@ -42,7 +42,7 @@ INFO[STRUCTURE_TYPES.FARM] = {
 INFO[STRUCTURE_TYPES.BSMITH] = {
   health: 100,
   maxhealth: 100,
-  cost: 20,
+  cost: 40,
   color: 'rgb(255,0,0)',
   popgen: 0,
   atkmult: 2,
@@ -56,7 +56,7 @@ INFO[STRUCTURE_TYPES.BSMITH] = {
 INFO[STRUCTURE_TYPES.SHIELD] = {
   health: 300,
   maxhealth: 300,
-  cost: 20,
+  cost: 40,
   color: 'rgb(169,169,169)',
   popgen: 0,
   atkmult: 1,
@@ -118,15 +118,6 @@ class Structure {
   
   reset() {
     setup(STRUCTURE_TYPES.PLACEHOLDER);
-  }
-  
-  //deals damage to structure
-  takeDamage(dmg, isBonus) {
-    this.health -= dmg/this.defmult;
-    if (this.health < 0){
-      this.health = 0;
-      this.destroyed = true;
-    }
   }
 };
 
