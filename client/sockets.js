@@ -226,7 +226,7 @@ const onGameUpdate = (sock) => {
     //get the hash of the winner
     socket.on(Messages.C_Winner, (data) => {
         const playerKeys = Object.keys(players);
-        winner = playerKeys.indexOf(winner) + 1;
+        winner = playerKeys.indexOf(data) + 1;
         
         //delete all attacks
         const keys = Object.keys(attacks);
