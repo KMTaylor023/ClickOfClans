@@ -5,6 +5,7 @@ class Room {
     this.players = [];
     this.openSpaces = [undefined, undefined, undefined, undefined];
     this.hostSocketHash = undefined;
+    this.started = false;
     Object.seal(this);
   }
 }

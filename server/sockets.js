@@ -168,6 +168,15 @@ const hostStateChange = (sock) => {
   });
 };
 
+const hostStarted = (sock) => {
+    const socket = sock;
+    
+    socket.on(Messages.H_Started, () => {
+        rooms[socket.roomString].started = true;
+        updateLobby(rooms[socket.roomString]);
+    })
+}
+
 // send winner to the players
 const hostEndGame = (sock) => {
   const socket = sock;
@@ -207,6 +216,10 @@ const joinRoom = (sock, roomName) => {
   if (rooms[roomName].full) {
     return socketErr(socket, 'Room is full');
   }
+    
+  if (rooms[roomName].started) {
+    return socketErr(socket, 'Room started');
+  }
 
   const room = rooms[roomName];
 
@@ -232,6 +245,7 @@ const joinRoom = (sock, roomName) => {
     hostStateChange(socket);
     hostEndGame(socket);
     hostFortifiedStructure(socket);
+    hostStarted(socket);
 
     socket.hostSocket = socket;
     hosts[socket.hash] = socket;

@@ -80,7 +80,6 @@ const updateAttack = () =>{
 
 //host socket listeners
 const onHosted = () => { 
-    document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack,100);
     
     socket.isHost = true;
@@ -114,6 +113,7 @@ const onHosted = () => {
             //all players are ready, update the game state
             gameState = GameStates.GAME_PLAY;
             socket.emit(Messages.H_State_Change, gameState);
+            socket.emit(Messages.H_Started);
         }
         
     });
@@ -164,7 +164,7 @@ const onHosted = () => {
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
-        if (originPlayer.population > 31 && !destPlayer.dead){
+        if (originPlayer.population >= 31 && !destPlayer.dead){
             //make sure origin player cant spawn attacks that would bring them to negative population
             
             

@@ -89,7 +89,6 @@ const getStructTypeBySelection = (pos) => {
 const doMouseDown = (e) => {
     //get location of mouse
     var mouse = getMouse(e);
-    
     //make sure the player isnt clicking already
     if (!mouseClicked){
         //check game state
@@ -110,6 +109,7 @@ const doMouseDown = (e) => {
                     //emit leave room event
                     socket.emit(Messages.S_Leave);
                     socket.isHost = false;  //reset host status
+                    lobby_showLobby();
                 }
             }
         }

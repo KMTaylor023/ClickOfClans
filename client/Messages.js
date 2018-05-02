@@ -41,6 +41,7 @@ const Messages = Object.freeze({
   H_Become_Host: 'h_isHost',        //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate',     //use to send the game room info to the clients
   H_State_Change: 'h_gameStateChange',  //game state chenged hostside
+  H_Started: 'h_started',  //game started
   H_Ready: 'h_readyUp',             //update a player's ready state
   H_Winner: 'h_winner',             //send the clients the player that won
   //Server messages

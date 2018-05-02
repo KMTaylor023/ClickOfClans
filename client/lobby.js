@@ -26,6 +26,9 @@ var lobby_showLobby = () => {
   readyButton.image = document.getElementById("ready");
     
   cancelAnimationFrame(animationFrame);
+  players = {};
+  users = {};
+  attacks = {};
 }
 
 //join a game room

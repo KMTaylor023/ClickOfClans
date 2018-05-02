@@ -91,7 +91,6 @@ var getStructTypeBySelection = function getStructTypeBySelection(pos) {
 var doMouseDown = function doMouseDown(e) {
     //get location of mouse
     var mouse = getMouse(e);
-
     //make sure the player isnt clicking already
     if (!mouseClicked) {
         //check game state
@@ -111,6 +110,7 @@ var doMouseDown = function doMouseDown(e) {
                     //emit leave room event
                     socket.emit(Messages.S_Leave);
                     socket.isHost = false; //reset host status
+                    lobby_showLobby();
                 }
             }
         } else {
@@ -581,7 +581,6 @@ var updateAttack = function updateAttack() {
 
 //host socket listeners
 var onHosted = function onHosted() {
-    document.querySelector("#debug").style.display = "block";
     setInterval(updateAttack, 100);
 
     socket.isHost = true;
@@ -616,6 +615,7 @@ var onHosted = function onHosted() {
             //all players are ready, update the game state
             gameState = GameStates.GAME_PLAY;
             socket.emit(Messages.H_State_Change, gameState);
+            socket.emit(Messages.H_Started);
         }
     });
 
@@ -663,7 +663,7 @@ var onHosted = function onHosted() {
         //make sure originplayer can afford to attack and the target isn't dead
         var originPlayer = players[at.originHash];
         var destPlayer = players[at.targetHash];
-        if (originPlayer.population > 31 && !destPlayer.dead) {
+        if (originPlayer.population >= 31 && !destPlayer.dead) {
             //make sure origin player cant spawn attacks that would bring them to negative population
 
 
@@ -734,6 +734,9 @@ var lobby_showLobby = function lobby_showLobby() {
   readyButton.image = document.getElementById("ready");
 
   cancelAnimationFrame(animationFrame);
+  players = {};
+  users = {};
+  attacks = {};
 };
 
 //join a game room
@@ -923,6 +926,7 @@ var Messages = Object.freeze({
   H_Become_Host: 'h_isHost', //hey dude, thanks for hosting
   H_Room_Update: 'h_roomUpdate', //use to send the game room info to the clients
   H_State_Change: 'h_gameStateChange', //game state chenged hostside
+  H_Started: 'h_started', //game started
   H_Ready: 'h_readyUp', //update a player's ready state
   H_Winner: 'h_winner', //send the clients the player that won
   //Server messages
