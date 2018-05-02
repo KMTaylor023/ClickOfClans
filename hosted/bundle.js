@@ -139,10 +139,22 @@ var doMouseDown = function doMouseDown(e) {
                             //send a currency click event 
                             socket.emit(Messages.C_Currency_Click);
                         } else {
+                            //check if you have a blacksmith
+                            var blacksmith = false; //do you have a blacksmith?
+                            for (var j = 0; j < 3; j++) {
+                                if (player.structures[j].type === STRUCTURE_TYPES.BSMITH) {
+                                    blacksmith = true;
+                                }
+                            }
+                            var attackMult = 1; //your attack multiplier
+
+                            if (blacksmith) {
+                                attackMult *= 2;
+                            }
 
                             //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, { originHash: myHash, targetHash: player.hash, x: myX,
-                                y: myY, color: players[myHash].color });
+                                y: myY, color: players[myHash].color, multiplier: attackMult });
                         }
                         selectedLotIndex = -1;
                     }
@@ -649,10 +661,10 @@ var onHosted = function onHosted() {
 
     var doFortify = function doFortify(data) {
         var dat = data;
-        if (players[data.hash].population >= 31 && players[data.hash].structures[data.which].health < players[data.hash].structures[data.which].maxhealth) {
-            players[data.hash].structures[data.which].health += 30;
+        if (players[data.hash].population >= 11 && players[data.hash].structures[data.which].health < players[data.hash].structures[data.which].maxhealth) {
+            players[data.hash].structures[data.which].health += 5;
             if (players[data.hash].structures[data.which].health > players[data.hash].structures[data.which].maxhealth) players[data.hash].structures[data.which].health = players[data.hash].structures[data.which].maxhealth;
-            players[data.hash].population -= 30;
+            players[data.hash].population -= 10;
             users[data.hash].population = players[data.hash].population;
             dat.health = players[data.hash].structures[data.which].health;
             socket.emit(Messages.H_Fortified, dat);
@@ -1287,8 +1299,8 @@ var onGameUpdate = function onGameUpdate(sock) {
 
     socket.on(Messages.C_Fortified, function (data) {
         if (!socket.isHost) {
-            players[data.hash].population -= 30;
-            users[data.hash].population -= 30;
+            players[data.hash].population -= 10;
+            users[data.hash].population -= 10;
             players[data.hash].structures[data.which].health = data.health;
         }
     });
@@ -1314,7 +1326,7 @@ var onGameUpdate = function onGameUpdate(sock) {
 
         players[data.dest].structures[data.lane].health -= attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult;
         if (players[data.dest].structures[data.lane].health <= 0) {
-            players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
+            players[data.dest].structures[data.lane].setup(STRUCTURE_TYPES.PLACEHOLDER);
         }
         delete attacks[data.hash];
     });

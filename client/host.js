@@ -148,12 +148,12 @@ const onHosted = () => {
     
     const doFortify = (data) => {
         const dat = data;
-        if(players[data.hash].population >= 31 && 
+        if(players[data.hash].population >= 11 && 
            players[data.hash].structures[data.which].health < players[data.hash].structures[data.which].maxhealth) {
-            players[data.hash].structures[data.which].health += 30;
+            players[data.hash].structures[data.which].health += 5;
             if(players[data.hash].structures[data.which].health > players[data.hash].structures[data.which].maxhealth)
                 players[data.hash].structures[data.which].health = players[data.hash].structures[data.which].maxhealth
-            players[data.hash].population -= 30;
+            players[data.hash].population -= 10;
             users[data.hash].population = players[data.hash].population;
             dat.health = players[data.hash].structures[data.which].health;
             socket.emit(Messages.H_Fortified, dat);

@@ -190,8 +190,8 @@ const onGameUpdate = (sock) => {
     
   socket.on(Messages.C_Fortified, (data) => {
       if (!socket.isHost){
-        players[data.hash].population -= 30;
-        users[data.hash].population -= 30;
+        players[data.hash].population -= 10;
+        users[data.hash].population -= 10;
           players[data.hash].structures[data.which].health = data.health;
       }
   });
@@ -218,7 +218,7 @@ const onGameUpdate = (sock) => {
       players[data.dest].structures[data.lane].health -= 
         (attacks[data.hash].damage / players[data.dest].structures[data.lane].defmult);
       if (players[data.dest].structures[data.lane].health <= 0){
-          players[data.dest].structures[data.lane].type = STRUCTURE_TYPES.PLACEHOLDER;
+          players[data.dest].structures[data.lane].setup(STRUCTURE_TYPES.PLACEHOLDER);
       }
       delete attacks[data.hash]; 
   });

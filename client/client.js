@@ -140,11 +140,23 @@ const doMouseDown = (e) => {
                             socket.emit(Messages.C_Currency_Click);
                         }
                         else{
+                            //check if you have a blacksmith
+                            let blacksmith = false; //do you have a blacksmith?
+                            for(var j = 0; j < 3; j++){
+                                if (player.structures[j].type === STRUCTURE_TYPES.BSMITH){
+                                    blacksmith = true;
+                                }
+                            }
+                            let attackMult = 1;     //your attack multiplier
+                            
+                            if (blacksmith){
+                                attackMult *= 2;
+                            }
                             
                             //send an attack click event  
                             socket.emit(Messages.C_Attack_Click, 
                             {originHash: myHash, targetHash: player.hash, x: myX, 
-                             y: myY, color: players[myHash].color});
+                             y: myY, color: players[myHash].color, multiplier: attackMult});
                         }
                         selectedLotIndex = -1;
                     }
