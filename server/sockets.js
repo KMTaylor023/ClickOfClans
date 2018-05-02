@@ -103,12 +103,12 @@ const hostAttackStruct = (sock) => {
 };
 
 const hostFortifiedStructure = (sock) => {
-    const socket = sock;
-    
-    socket.on(Messages.H_Fortified, (data) => {
-        io.sockets.in(socket.roomString).emit(Messages.C_Fortified, data);
-    })
-}
+  const socket = sock;
+
+  socket.on(Messages.H_Fortified, (data) => {
+    io.sockets.in(socket.roomString).emit(Messages.C_Fortified, data);
+  });
+};
 
 // send the host processed data from a fired attack event to the whole room
 const hostAttackFired = (sock) => {
@@ -169,13 +169,13 @@ const hostStateChange = (sock) => {
 };
 
 const hostStarted = (sock) => {
-    const socket = sock;
-    
-    socket.on(Messages.H_Started, () => {
-        rooms[socket.roomString].started = true;
-        updateLobby(rooms[socket.roomString]);
-    })
-}
+  const socket = sock;
+
+  socket.on(Messages.H_Started, () => {
+    rooms[socket.roomString].started = true;
+    updateLobby(rooms[socket.roomString]);
+  });
+};
 
 // send winner to the players
 const hostEndGame = (sock) => {
@@ -216,7 +216,7 @@ const joinRoom = (sock, roomName) => {
   if (rooms[roomName].full) {
     return socketErr(socket, 'Room is full');
   }
-    
+
   if (rooms[roomName].started) {
     return socketErr(socket, 'Room started');
   }
@@ -450,9 +450,9 @@ const setupSockets = (ioServer) => {
     });
 
     socket.on(Messages.C_Fortify, (data) => {
-        socket.hostSocket.emit(Messages.H_Fortify, data);
+      socket.hostSocket.emit(Messages.H_Fortify, data);
     });
-      
+
     enterLobby(socket);
   });
 };

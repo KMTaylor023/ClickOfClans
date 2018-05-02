@@ -7,6 +7,7 @@
  canvas {  
   margin: auto;
   text-align: center; 
+  cursor: pointer;
 }
 
 #skins {
@@ -36,13 +37,35 @@
     margin: 0 auto;
     text-align: center;
     height: 750px;
-    width: 30%;
+    width: 40%;
+    min-width: 380px;
     background-color: rgb(255,255,255,.75);
     padding-top: 20px;
 }
 
 #roomSelection{
     list-style: none;
+}
+
+.room_open {
+    display: block;
+    background-color: #7b957a;
+    width: 90%;
+    margin: 3px auto;
+    cursor: pointer;
+}
+
+.room_open:hover {
+    background-color: #3b9037c7;
+    transition: background-color 0.8s ease;
+}
+
+.room_started {
+    display: block;
+    background-color: #8e6c66;
+    width: 90%;
+    margin: 3px auto;
+    cursor: not-allowed;
 }
 
 ul{
